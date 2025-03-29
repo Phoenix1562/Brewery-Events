@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
 import { db } from './firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
   const [events, setEvents] = useState([]);
+
+  // Load events from Firestore on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "events"));
+        const loadedEvents = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setEvents(loadedEvents);
+        console.log("📥 Events loaded from Firestore:", loadedEvents);
+      } catch (err) {
+        console.error("💥 Failed to load events:", err);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const addEvent = async () => {
     const newEvent = {
@@ -28,7 +47,7 @@ function App() {
       status: 'maybe',
       createdAt: new Date().toISOString()
     };
-  
+
     try {
       const docRef = await addDoc(collection(db, 'events'), newEvent);
       const eventWithId = { id: docRef.id, ...newEvent };
@@ -39,18 +58,48 @@ function App() {
     }
   };
 
-  const updateEvent = (id, field, value) => {
+  // Update a single field of an event
+  const updateEvent = async (id, field, value) => {
     const updatedEvents = events.map(event =>
       event.id === id ? { ...event, [field]: value } : event
     );
     setEvents(updatedEvents);
+
+    try {
+      const docRef = doc(db, "events", id);
+      await updateDoc(docRef, { [field]: value });
+      console.log("✅ Updated Firebase for", field, "=", value);
+    } catch (err) {
+      console.error("💥 Failed to update event:", err);
+    }
   };
 
-  const moveEvent = (id, newStatus) => {
+  // New: Save the entire updated event to Firestore
+  const saveEvent = async (updatedEvent) => {
+    try {
+      const docRef = doc(db, "events", updatedEvent.id);
+      await updateDoc(docRef, updatedEvent);
+      console.log("✅ Event saved to Firebase:", updatedEvent.id);
+      // Update local state with the full updated event if needed:
+      setEvents(prev => prev.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+    } catch (err) {
+      console.error("💥 Error saving event:", err);
+    }
+  };
+
+  const moveEvent = async (id, newStatus) => {
     const updatedEvents = events.map(event =>
       event.id === id ? { ...event, status: newStatus } : event
     );
     setEvents(updatedEvents);
+
+    try {
+      const docRef = doc(db, "events", id);
+      await updateDoc(docRef, { status: newStatus });
+      console.log("✅ Moved event", id, "to", newStatus);
+    } catch (err) {
+      console.error("💥 Failed to move event:", err);
+    }
   };
 
   // Move event to previous status
@@ -78,6 +127,7 @@ function App() {
   const deleteEvent = (id) => {
     const updatedEvents = events.filter(event => event.id !== id);
     setEvents(updatedEvents);
+    // Optionally: add Firestore deletion logic here
   };
 
   const sortByDate = (list) => {
@@ -88,7 +138,7 @@ function App() {
     });
   };
 
-  // For tabs that are not "statistics", filter events by their status.
+  // For tabs (except statistics), filter events by status
   const filteredEvents = sortByDate(events.filter(e => e.status === currentTab));
 
   const renderTab = () => {
@@ -98,6 +148,7 @@ function App() {
           events={filteredEvents}
           addEvent={addEvent}
           onUpdate={updateEvent}
+          onSave={saveEvent}   // NEW save handler
           onMoveLeft={null} // no left move in 'maybe'
           onMoveRight={handleMoveRightEvent}
           onDelete={deleteEvent}
@@ -108,6 +159,7 @@ function App() {
         <UpcomingTab 
           events={filteredEvents}
           onUpdate={updateEvent}
+          onSave={saveEvent}   // NEW save handler
           onMoveLeft={handleMoveLeftEvent}
           onMoveRight={handleMoveRightEvent}
           onDelete={deleteEvent}
@@ -118,6 +170,7 @@ function App() {
         <FinishedTab 
           events={filteredEvents}
           onUpdate={updateEvent}
+          onSave={saveEvent}   // NEW save handler
           onMoveLeft={handleMoveLeftEvent}
           onMoveRight={null} // no right move in 'finished'
           onDelete={deleteEvent}
