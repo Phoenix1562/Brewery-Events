@@ -6,6 +6,7 @@ import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
 import { db } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore'; // make sure this is imported
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
@@ -124,10 +125,23 @@ function App() {
     }
   };
 
-  const deleteEvent = (id) => {
-    const updatedEvents = events.filter(event => event.id !== id);
-    setEvents(updatedEvents);
-    // Optionally: add Firestore deletion logic here
+  const deleteEvent = async (id) => {
+    const confirmed = window.confirm("Are you sure you want to delete this event?");
+    if (!confirmed) return;
+  
+    try {
+      // 🧨 Delete from Firestore
+      await deleteDoc(doc(db, "events", id));
+  
+      // 💨 Remove from local state
+      const updatedEvents = events.filter(event => event.id !== id);
+      setEvents(updatedEvents);
+  
+      console.log("🗑️ Deleted event:", id);
+    } catch (err) {
+      console.error("💥 Failed to delete event:", err);
+      alert("Failed to delete event from Firestore.");
+    }
   };
 
   const sortByDate = (list) => {
