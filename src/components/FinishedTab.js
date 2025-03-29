@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import EventCard from './EventCard';
 
-function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete }) {
+function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave }) {
   // Filter for finished events with valid dates
-  const finishedEvents = events.filter(e => e.status === 'finished' && e.eventDate);
+  const finishedEvents = events.filter(e => e.status === 'finished');
 
   // Filter mode: "month" or "range"
   const [filterMode, setFilterMode] = useState('month');
@@ -128,9 +128,6 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete }) {
       {/* Overall Totals */}
       <div className="mb-4">
         <p><strong>Total Finished Events:</strong> {displayedEvents.length}</p>
-        <p>
-          
-        </p>
       </div>
 
       {/* Display events for the selected filter */}
@@ -146,6 +143,7 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete }) {
                 onMoveLeft={onMoveLeft}
                 onMoveRight={onMoveRight}
                 onDelete={onDelete}
+                onSave={onSave} // ✅ Added here!
               />
             </div>
           ))}

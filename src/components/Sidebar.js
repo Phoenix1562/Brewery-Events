@@ -1,35 +1,35 @@
-import React from 'react';
-
 function Sidebar({ currentTab, setCurrentTab }) {
+  const tabs = [
+    { id: 'maybe', label: 'Pending' },
+    { id: 'upcoming', label: 'Upcoming' },
+    { id: 'calendar', label: 'Calendar' },
+    { id: 'finished', label: 'Finished' },
+    { id: 'statistics', label: 'Statistics' }
+  ];
+
   return (
-    <div className="w-64 bg-gray-800 text-white h-full p-4">
-      <h2 className="text-xl font-bold mb-8">Event Planner</h2>
-      <ul>
-        <li 
-          className={`mb-4 cursor-pointer ${currentTab === 'maybe' ? 'text-blue-300' : 'hover:text-blue-500'}`}
-          onClick={() => setCurrentTab('maybe')}
-        >
-          Pending
-        </li>
-        <li 
-          className={`mb-4 cursor-pointer ${currentTab === 'upcoming' ? 'text-blue-300' : 'hover:text-blue-500'}`}
-          onClick={() => setCurrentTab('upcoming')}
-        >
-          Upcoming
-        </li>
-        <li 
-          className={`mb-4 cursor-pointer ${currentTab === 'finished' ? 'text-blue-300' : 'hover:text-blue-500'}`}
-          onClick={() => setCurrentTab('finished')}
-        >
-          Finished
-        </li>
-        <li 
-          className={`mb-4 cursor-pointer ${currentTab === 'statistics' ? 'text-blue-300' : 'hover:text-blue-500'}`}
-          onClick={() => setCurrentTab('statistics')}
-        >
-          Statistics
-        </li>
-      </ul>
+    <div className="w-64 bg-gray-800 text-white h-full p-4 flex flex-col">
+      {/* Header stays at the top */}
+      <h2 className="text-3xl font-bold mt-6 mb-8 text-center">Event Planner</h2>
+
+      {/* Spacer between header and tab list */}
+      <div className="flex-1 flex flex-col justify-center">
+        <ul className="space-y-4">
+          {tabs.map(tab => (
+            <li 
+              key={tab.id}
+              onClick={() => setCurrentTab(tab.id)}
+              className={`cursor-pointer text-center p-4 rounded-lg transition-all duration-200 transform hover:scale-105 ${
+                currentTab === tab.id
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {tab.label}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

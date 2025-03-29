@@ -4,6 +4,7 @@ import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
+import CalendarTab from './components/CalendarTab';
 import { db } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
@@ -89,19 +90,31 @@ function App() {
   };
 
   const moveEvent = async (id, newStatus) => {
-    const updatedEvents = events.map(event =>
-      event.id === id ? { ...event, status: newStatus } : event
-    );
-    setEvents(updatedEvents);
-
+    const eventToUpdate = events.find(event => event.id === id);
+    if (!eventToUpdate) return;
+  
+    let updatedEvent = { ...eventToUpdate, status: newStatus };
+  
+    // When moving to finished, if the eventDate is empty or invalid, default to today's date.
+    if (
+      newStatus === 'finished' &&
+      (!eventToUpdate.eventDate || isNaN(new Date(eventToUpdate.eventDate)))
+    ) {
+      updatedEvent.eventDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    }
+  
     try {
       const docRef = doc(db, "events", id);
-      await updateDoc(docRef, { status: newStatus });
-      console.log("✅ Moved event", id, "to", newStatus);
+      await updateDoc(docRef, updatedEvent);
+      console.log("✅ Moved event", id, "to", newStatus, "with date", updatedEvent.eventDate);
+      setEvents(prevEvents =>
+        prevEvents.map(event => (event.id === id ? updatedEvent : event))
+      );
     } catch (err) {
       console.error("💥 Failed to move event:", err);
     }
   };
+  
 
   // Move event to previous status
   const handleMoveLeftEvent = (id) => {
@@ -192,6 +205,8 @@ function App() {
       );
     } else if (currentTab === 'statistics') {
       return <StatisticsTab events={events} />;
+    } else if (currentTab === 'calendar') {
+      return <CalendarTab events={events} />;
     }
   };
 

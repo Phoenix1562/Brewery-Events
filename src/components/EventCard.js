@@ -23,6 +23,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   const handleSave = () => {
     if (onSave) {
       onSave(localEvent);
+      setCollapsed(true); // Collapse the card after saving
     } else {
       console.log("No save handler provided");
     }
@@ -121,7 +122,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
             />
             <input
               type="number"
-              placeholder="Amount Paid After"
+              placeholder="Food/Beverage Cost"
               value={localEvent.amountPaidAfter}
               onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
               className="border p-2 text-sm"
