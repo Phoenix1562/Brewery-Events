@@ -90,35 +90,48 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   };
 
   return (
-    <div className="p-2 border rounded shadow relative transition-all duration-300 hover:shadow-lg">
-      {/* Collapse/Expand Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        title={collapsed ? 'Expand event details' : 'Collapse event details'}
-        className="absolute top-1 right-1 text-xs text-gray-600 hover:text-black"
-      >
-        {collapsed ? '▼' : '▲'}
-      </button>
-
+    <div className="relative transition-all duration-300">
       {collapsed ? (
-        // Collapsed view: display summary info
+        // Collapsed view: horizontal layout with details and an expand arrow on the right
         <div 
-          className="flex items-center space-x-4 text-sm cursor-pointer"
+          className="bg-white p-4 border border-gray-400 rounded-xl shadow-sm hover:shadow-md transition duration-300 cursor-pointer flex items-center justify-between"
           onClick={() => setCollapsed(false)}
         >
-          <span>
-            <strong>Client:</strong> {localEvent.clientName || <em>None</em>}
-          </span>
-          <span>
-            <strong>Event:</strong> {localEvent.eventName || <em>None</em>}
-          </span>
-          <span>
-            <strong>Date:</strong> {localEvent.eventDate || <em>None</em>}
-          </span>
+          <div className="flex flex-row items-center space-x-6">
+            <span className="text-sm">
+              <strong>Client:</strong> {localEvent.clientName || <em>None</em>}
+            </span>
+            <span className="text-sm">
+              <strong>Event:</strong> {localEvent.eventName || <em>None</em>}
+            </span>
+            <span className="text-sm">
+              <strong>Date:</strong> {localEvent.eventDate ? new Date(localEvent.eventDate).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              }) : <em>None</em>}
+            </span>
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
+            title="Expand event details"
+            className="text-xs text-gray-600 hover:text-black"
+          >
+            ▼
+          </button>
         </div>
       ) : (
-        // Expanded view: editable form
-        <div className="bg-gray-50 p-2">
+        // Expanded view: editable form with a top-right collapse button and file upload section
+        <div className="bg-gray-50 pl-2 pr-8 pt-2 pb-2 border border-gray-400 rounded-xl relative">
+          {/* Collapse button at top right */}
+          <button
+            onClick={() => setCollapsed(true)}
+            className="absolute top-2 right-2 p-2 rounded hover:bg-gray-200 text-sm text-gray-600 hover:text-black"
+            title="Collapse event details"
+          >
+            ▼
+          </button>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <input
               type="text"
@@ -211,17 +224,21 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
           ></textarea>
 
           {/* File Upload Section */}
-          <div className="mt-2">
-            <label className="block text-sm font-semibold mb-1">Attach Word Document(s):</label>
-            <input 
-              type="file" 
-              accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-              onChange={handleFileUpload}
-              className="border p-1"
-              multiple
-            />
+          <div className="mt-2 flex items-center">
+            <div className="flex-1">
+              <label className="block text-sm font-semibold mb-1">
+                Attach Word Document(s):
+              </label>
+              <input 
+                type="file" 
+                accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                onChange={handleFileUpload}
+                className="border p-1 w-auto"
+                multiple
+              />
+            </div>
           </div>
-          
+
           {/* Save Button */}
           <button
             onClick={handleSave}

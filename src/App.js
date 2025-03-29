@@ -5,12 +5,15 @@ import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
 import CalendarTab from './components/CalendarTab';
+import ExportModal from './components/ExportModal'; // NEW: Import Export Modal
 import { db } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { exportEventsToExcel } from './utils/export'; // NEW: Import export helper
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
   const [events, setEvents] = useState([]);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
   // Load events from Firestore on component mount
   useEffect(() => {
@@ -210,12 +213,27 @@ function App() {
     }
   };
 
+  // Handler to confirm export options from the modal
+  const handleExportConfirm = (filterOptions) => {
+    exportEventsToExcel(events, filterOptions);
+  };
+
   return (
     <div className="flex h-screen">
-      <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <Sidebar 
+        currentTab={currentTab} 
+        setCurrentTab={setCurrentTab} 
+        onExport={() => setExportModalVisible(true)}  // Open the export modal
+      />
       <div className="flex-1 p-4 overflow-auto">
         {renderTab()}
       </div>
+      {/* Render the Export Modal */}
+      <ExportModal 
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+        onConfirm={handleExportConfirm}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-function Sidebar({ currentTab, setCurrentTab }) {
+function Sidebar({ currentTab, setCurrentTab, onExport }) {
   const tabs = [
     { id: 'maybe', label: 'Pending' },
     { id: 'upcoming', label: 'Upcoming' },
@@ -12,7 +12,7 @@ function Sidebar({ currentTab, setCurrentTab }) {
       {/* Header stays at the top */}
       <h2 className="text-3xl font-bold mt-6 mb-8 text-center">Event Planner</h2>
 
-      {/* Spacer between header and tab list */}
+      {/* Tab list */}
       <div className="flex-1 flex flex-col justify-center">
         <ul className="space-y-4">
           {tabs.map(tab => (
@@ -29,6 +29,17 @@ function Sidebar({ currentTab, setCurrentTab }) {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Export button at the bottom */}
+      <div className="mt-auto">
+        <button 
+          onClick={onExport}
+          className="w-full px-3 py-2 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 transition"
+          title="Export events to Excel"
+        >
+          Export to Excel
+        </button>
       </div>
     </div>
   );
