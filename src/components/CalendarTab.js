@@ -21,10 +21,17 @@ function CalendarTab({ events }) {
 
   // Global document click listener to close popups when clicking anywhere else
   useEffect(() => {
-    const handleDocumentClick = () => {
+    const handleDocumentClick = (e) => {
+      // If the click occurred on a checkbox or its label, don't dismiss the popups.
+      if (
+        e.target.closest('input[type="checkbox"]') ||
+        e.target.closest('label[for="includePending"]')
+      ) {
+        return;
+      }
       setOpenInfo({});
     };
-    document.addEventListener('click', handleDocumentClick, true); // use capture phase
+    document.addEventListener('click', handleDocumentClick, true); // capture phase
     return () => {
       document.removeEventListener('click', handleDocumentClick, true);
     };
