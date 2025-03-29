@@ -79,11 +79,12 @@ function App() {
   // Save the entire updated event to Firestore
   const saveEvent = async (updatedEvent) => {
     try {
-      const docRef = doc(db, "events", updatedEvent.id);
-      await updateDoc(docRef, updatedEvent);
-      console.log("✅ Event saved to Firebase:", updatedEvent.id);
+      const { id, ...fields } = updatedEvent; // Remove the id from the update payload
+      const docRef = doc(db, "events", id);
+      await updateDoc(docRef, fields);
+      console.log("✅ Event saved to Firebase:", id);
       // Update local state with the full updated event if needed:
-      setEvents(prev => prev.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
     } catch (err) {
       console.error("💥 Error saving event:", err);
     }
