@@ -5,8 +5,8 @@ import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
 import { db } from './firebase';
-import { collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { deleteDoc, doc } from 'firebase/firestore'; // make sure this is imported
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
