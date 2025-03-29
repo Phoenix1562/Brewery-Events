@@ -4,14 +4,15 @@ import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
+import { db } from './firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
   const [events, setEvents] = useState([]);
 
-  const addEvent = () => {
+  const addEvent = async () => {
     const newEvent = {
-      id: Date.now(),
       clientName: '',
       eventName: '',
       eventDate: '',
@@ -24,9 +25,18 @@ function App() {
       grandTotal: '',
       securityDeposit: '',
       notes: '',
-      status: 'maybe'
+      status: 'maybe',
+      createdAt: new Date().toISOString()
     };
-    setEvents([...events, newEvent]);
+  
+    try {
+      const docRef = await addDoc(collection(db, 'events'), newEvent);
+      const eventWithId = { id: docRef.id, ...newEvent };
+      setEvents(prev => [...prev, eventWithId]);
+      console.log("🔥 Event saved to Firebase:", docRef.id);
+    } catch (err) {
+      console.error("💥 Failed to save event:", err);
+    }
   };
 
   const updateEvent = (id, field, value) => {
