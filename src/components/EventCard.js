@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { uploadFile, deleteFile } from '../firebase';
 
 function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   const [collapsed, setCollapsed] = useState(true);
   const [localEvent, setLocalEvent] = useState(event);
+  const [isDirty, setIsDirty] = useState(false); // Flag for unsaved changes
 
-  // When the event prop changes, update our local state
+  // Update local state when event prop changes
   useEffect(() => {
     setLocalEvent(event);
+    setIsDirty(false);
   }, [event]);
 
   // Auto-collapse when the event status changes
@@ -14,16 +17,73 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
     setCollapsed(true);
   }, [event.status]);
 
-  // Update local state on field change
+  // Native beforeunload handler to warn about unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  // Update a field and mark unsaved changes
   const handleChange = (field, value) => {
     setLocalEvent(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
   };
 
-  // Save the changes by calling onSave (if provided)
+  // Handle file uploads
+  const handleFileUpload = async (e) => {
+    const filesToUpload = Array.from(e.target.files);
+    if (!filesToUpload.length) return;
+    for (const file of filesToUpload) {
+      try {
+        const uploaded = await uploadFile(file, localEvent.id);
+        setLocalEvent(prev => ({
+          ...prev,
+          files: prev.files ? [...prev.files, uploaded] : [uploaded]
+        }));
+        setIsDirty(true);
+      } catch (err) {
+        console.error("File upload failed", err);
+        alert("Failed to upload file: " + file.name);
+      }
+    }
+  };
+
+  // Handle deletion of an attached file with auto-save after deletion
+  const handleDeleteFile = async (file, index) => {
+    if (window.confirm(`Delete file "${file.name}"?`)) {
+      try {
+        await deleteFile(file.path);
+        const updatedEvent = { 
+          ...localEvent,
+          files: localEvent.files.filter((_, i) => i !== index)
+        };
+        setLocalEvent(updatedEvent);
+        // Auto-save immediately after deletion so the change persists
+        if (onSave) {
+          await onSave(updatedEvent);
+        }
+        // Mark as not dirty since changes are now saved
+        setIsDirty(false);
+        console.log(`Auto-saved deletion of ${file.name}. No ghosts left behind!`);
+      } catch (err) {
+        console.error("Failed to delete file", err);
+        alert("Failed to delete file: " + file.name);
+      }
+    }
+  };
+
+  // Save the current event to Firestore
   const handleSave = () => {
     if (onSave) {
       onSave(localEvent);
-      setCollapsed(true); // Collapse the card after saving
+      setCollapsed(true);
+      setIsDirty(false);
     } else {
       console.log("No save handler provided");
     }
@@ -31,7 +91,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
 
   return (
     <div className="p-2 border rounded shadow relative transition-all duration-300 hover:shadow-lg">
-      {/* Toggle Collapse/Expand Button */}
+      {/* Collapse/Expand Toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         title={collapsed ? 'Expand event details' : 'Collapse event details'}
@@ -41,7 +101,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
       </button>
 
       {collapsed ? (
-        // Collapsed view: display key info
+        // Collapsed view: display summary info
         <div 
           className="flex items-center space-x-4 text-sm cursor-pointer"
           onClick={() => setCollapsed(false)}
@@ -150,6 +210,18 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
             rows="3"
           ></textarea>
 
+          {/* File Upload Section */}
+          <div className="mt-2">
+            <label className="block text-sm font-semibold mb-1">Attach Word Document(s):</label>
+            <input 
+              type="file" 
+              accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+              onChange={handleFileUpload}
+              className="border p-1"
+              multiple
+            />
+          </div>
+          
           {/* Save Button */}
           <button
             onClick={handleSave}
@@ -158,16 +230,50 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
           >
             Save
           </button>
+
+          {/* List of attached files with Delete buttons */}
+          {localEvent.files && localEvent.files.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-semibold">Attached Files:</p>
+              <ul className="list-disc list-inside text-sm">
+                {localEvent.files.map((file, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline"
+                    >
+                      {file.name}
+                    </a>
+                    <button
+                      onClick={() => handleDeleteFile(file, index)}
+                      className="text-red-500 text-xs ml-2"
+                      title="Delete this file"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Action Buttons: visible in expanded mode */}
+      {/* Action Buttons (e.g., Move Left/Right, Delete event) */}
       {!collapsed && (
         <div className="mt-2 flex space-x-2">
           {localEvent.status !== 'maybe' && onMoveLeft && (
             <button 
               className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-              onClick={() => onMoveLeft(localEvent.id)}
+              onClick={() => {
+                if (isDirty) {
+                  alert("Please save the event first!");
+                } else {
+                  onMoveLeft(localEvent.id);
+                }
+              }}
               title="Move event to the left"
             >
               &larr; Move Left
@@ -176,7 +282,13 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
           {localEvent.status !== 'finished' && onMoveRight && (
             <button 
               className="bg-green-500 text-white px-3 py-1 rounded text-sm"
-              onClick={() => onMoveRight(localEvent.id)}
+              onClick={() => {
+                if (isDirty) {
+                  alert("Please save the event first!");
+                } else {
+                  onMoveRight(localEvent.id);
+                }
+              }}
               title="Move event to the right"
             >
               Move Right &rarr;

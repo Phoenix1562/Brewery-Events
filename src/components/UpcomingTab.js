@@ -7,6 +7,9 @@ function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
     (a, b) => new Date(a.eventDate) - new Date(b.eventDate)
   );
 
+  // Determine the date of the first upcoming event
+  const firstEventDate = sortedEvents.length > 0 ? sortedEvents[0].eventDate : null;
+
   return (
     <div className="p-4">
       {/* Title and Context */}
@@ -26,10 +29,10 @@ function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
           You’re all caught up! No upcoming events at the moment.
         </p>
       ) : (
-        sortedEvents.map((event, index) => (
+        sortedEvents.map((event) => (
           <div
             key={event.id}
-            className={`mb-4 ${index === 0 ? 'border-l-4 border-blue-500 pl-2' : ''}`}
+            className={`mb-4 ${firstEventDate && event.eventDate === firstEventDate ? 'border-l-4 border-blue-500 pl-2' : ''}`}
           >
             <EventCard
               event={event}
@@ -37,7 +40,7 @@ function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
               onMoveLeft={onMoveLeft}
               onMoveRight={onMoveRight}
               onDelete={onDelete}
-              onSave={onSave} // ✅ Add this line
+              onSave={onSave}
             />
           </div>
         ))

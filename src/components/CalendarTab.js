@@ -10,28 +10,23 @@ function CalendarTab({ events }) {
     return localStorage.getItem('calendarViewMode') || 'monthly';
   });
 
-  // Update localStorage when state changes
   useEffect(() => {
     localStorage.setItem('calendarIncludePending', includePending);
   }, [includePending]);
-
   useEffect(() => {
     localStorage.setItem('calendarViewMode', viewMode);
   }, [viewMode]);
 
-  // Global document click listener to close popups when clicking anywhere else
+  // Global click listener to close detail modal when clicking outside modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({ date: null, events: [] });
   useEffect(() => {
     const handleDocumentClick = (e) => {
-      // If the click occurred on a checkbox or its label, don't dismiss the popups.
-      if (
-        e.target.closest('input[type="checkbox"]') ||
-        e.target.closest('label[for="includePending"]')
-      ) {
-        return;
-      }
-      setOpenInfo({});
+      // Ignore clicks inside modal container
+      if (e.target.closest('.modal-content')) return;
+      setModalOpen(false);
     };
-    document.addEventListener('click', handleDocumentClick, true); // capture phase
+    document.addEventListener('click', handleDocumentClick, true);
     return () => {
       document.removeEventListener('click', handleDocumentClick, true);
     };
@@ -42,15 +37,13 @@ function CalendarTab({ events }) {
     includePending ? (e.status === 'upcoming' || e.status === 'maybe') : (e.status === 'upcoming')
   );
 
-  // State for the currently displayed date and open info popups
+  // State for the currently displayed date and calendar grid calculation
   const [currentDate, setCurrentDate] = useState(new Date());
-  // openInfo: an object keyed by date string; if present and true, popup is open for that cell
-  const [openInfo, setOpenInfo] = useState({});
 
   // Helper: Format Date as YYYY-MM-DD
   const formatDate = (date) => date.toISOString().split('T')[0];
 
-  // Navigation handlers adjust based on view mode
+  // Navigation handlers
   const handlePrev = () => {
     if (viewMode === "monthly") {
       const year = currentDate.getFullYear();
@@ -62,7 +55,6 @@ function CalendarTab({ events }) {
       setCurrentDate(newDate);
     }
   };
-
   const handleNext = () => {
     if (viewMode === "monthly") {
       const year = currentDate.getFullYear();
@@ -75,36 +67,26 @@ function CalendarTab({ events }) {
     }
   };
 
-  // Toggle detailed info for a given date (stop propagation to prevent global dismiss)
-  const toggleInfo = (dateStr, e) => {
-    if(e) e.stopPropagation();
-    setOpenInfo(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
+  // When a day cell is clicked, open a modal with detailed info.
+  const openModalForDate = (date, eventsForDay) => {
+    setModalContent({ date, events: eventsForDay });
+    setModalOpen(true);
   };
 
-  // Calculate calendar grid based on view mode
+  // Calculate calendar grid
   let weeks = [];
   if (viewMode === "monthly") {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const startDay = firstDay.getDay(); // 0=Sun ... 6=Sat
-
+    const startDay = firstDay.getDay();
     const days = [];
-    for (let i = 0; i < startDay; i++) {
-      days.push(null);
-    }
-    for (let d = 1; d <= lastDay.getDate(); d++) {
-      days.push(new Date(year, month, d));
-    }
-    while (days.length % 7 !== 0) {
-      days.push(null);
-    }
-    for (let i = 0; i < days.length; i += 7) {
-      weeks.push(days.slice(i, i + 7));
-    }
+    for (let i = 0; i < startDay; i++) days.push(null);
+    for (let d = 1; d <= lastDay.getDate(); d++) days.push(new Date(year, month, d));
+    while (days.length % 7 !== 0) days.push(null);
+    for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
   } else {
-    // Weekly view: calculate week starting on Sunday
     const current = new Date(currentDate);
     const dayOfWeek = current.getDay();
     const weekStart = new Date(current);
@@ -116,11 +98,14 @@ function CalendarTab({ events }) {
     weeks.push(weekDays);
   }
 
+  // Get today's date for highlighting
+  const todayStr = formatDate(new Date());
+
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
       <h2 className="text-2xl font-bold mb-4">Calendar</h2>
       
-      {/* Row: Include Pending + View Mode Selector */}
+      {/* Include Pending + View Mode Selector */}
       <div className="flex items-center mb-4">
         <div className="flex items-center">
           <input 
@@ -133,13 +118,13 @@ function CalendarTab({ events }) {
           <label htmlFor="includePending" className="text-sm">Include Pending Events</label>
         </div>
         <div className="flex items-center ml-auto space-x-6">
-          <div className="flex items-center cursor-pointer" onClick={(e) => toggleInfo('dummy', e) /* prevent global dismiss if needed */ || setViewMode("monthly")}>
+          <div className="flex items-center cursor-pointer" onClick={() => setViewMode("monthly")}>
             <div className={`w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center ${viewMode === "monthly" ? "bg-blue-500" : "bg-white"}`}>
               {viewMode === "monthly" && <div className="w-2 h-2 bg-white rounded-full"></div>}
             </div>
             <span className="ml-2 text-sm">Monthly</span>
           </div>
-          <div className="flex items-center cursor-pointer" onClick={(e) => toggleInfo('dummy', e) || setViewMode("weekly")}>
+          <div className="flex items-center cursor-pointer" onClick={() => setViewMode("weekly")}>
             <div className={`w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center ${viewMode === "weekly" ? "bg-blue-500" : "bg-white"}`}>
               {viewMode === "weekly" && <div className="w-2 h-2 bg-white rounded-full"></div>}
             </div>
@@ -177,45 +162,33 @@ function CalendarTab({ events }) {
                 const dateStr = formatDate(day);
                 const eventsForDay = filteredEvents.filter(e => e.eventDate === dateStr);
                 return (
-                  <td key={di} className="border p-2 align-top h-24 relative" onClick={() => setOpenInfo({})}>
-                    <div className="font-bold">{day.getDate()}</div>
-                    {/* Display only event name(s) in the cell */}
-                    {eventsForDay.slice(0, 2).map((event, i) => (
-                      <div key={i} className="text-sm truncate">
-                        {event.eventName || 'Unnamed Event'}
-                      </div>
-                    ))}
-                    {eventsForDay.length > 2 && (
-                      <div className="text-xs text-gray-500">+{eventsForDay.length - 2} more</div>
-                    )}
-                    {/* Enlarged "i" icon with extra padding */}
+                  <td 
+                    key={di} 
+                    className={`border p-2 h-24 relative transition-colors rounded-md hover:bg-gray-50 ${dateStr === todayStr ? 'bg-blue-100' : ''}`}
+                    onClick={() => {}}
+                  >
+                    <div className="font-bold text-sm">{day.getDate()}</div>
+                    <div className="mt-1 space-y-1">
+                      {eventsForDay.slice(0, 2).map((event, i) => (
+                        <div 
+                          key={i} 
+                          className="bg-blue-500 text-white text-xs font-semibold px-1 py-0.5 rounded overflow-hidden whitespace-nowrap truncate"
+                        >
+                          {event.eventName || 'Unnamed'}
+                        </div>
+                      ))}
+                      {eventsForDay.length > 2 && (
+                        <div className="text-xs text-gray-500">+{eventsForDay.length - 2} more</div>
+                      )}
+                    </div>
+                    {/* Info Icon */}
                     <button 
-                      onClick={(e) => toggleInfo(dateStr, e)}
-                      className="absolute top-1 right-1 p-2 text-blue-500 hover:text-blue-700"
+                      onClick={(e) => { e.stopPropagation(); openModalForDate(day, eventsForDay); }}
+                      className="absolute top-1 right-1 p-2 text-blue-500 hover:text-blue-700 transition-transform duration-150"
                       title="More info"
                     >
                       i
                     </button>
-                    {/* Detail Popup */}
-                    {openInfo[dateStr] && (
-                      <div 
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute bg-white text-black border p-2 mt-2 left-0 z-10 shadow-lg"
-                      >
-                        <h4 className="font-bold mb-1">{day.toDateString()}</h4>
-                        {eventsForDay.length === 0 ? (
-                          <p className="text-sm">No events.</p>
-                        ) : (
-                          <ul className="text-sm">
-                            {eventsForDay.map((event, idx) => (
-                              <li key={idx}>
-                                {event.clientName ? `${event.clientName} - ` : ''}{event.eventName || 'Unnamed Event'}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
                   </td>
                 );
               })}
@@ -223,6 +196,42 @@ function CalendarTab({ events }) {
           ))}
         </tbody>
       </table>
+
+      {/* Modal Overlay for Detailed Info */}
+      {modalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20"
+          onClick={() => setModalOpen(false)}
+        >
+          <div 
+            className="modal-content bg-white rounded-md p-4 w-11/12 max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setModalOpen(false)}
+              title="Close"
+            >
+              &times;
+            </button>
+            <h4 className="text-lg font-bold mb-2">{modalContent.date && modalContent.date.toDateString()}</h4>
+            {modalContent.events.length === 0 ? (
+              <p className="text-sm">No events for this day.</p>
+            ) : (
+              <ul className="space-y-1">
+                {modalContent.events.map((event, idx) => (
+                  <li key={idx} className="text-sm border-b pb-1">
+                    <span className="font-semibold">{event.eventName || 'Unnamed Event'}</span>
+                    {event.clientName && (
+                      <span className="italic text-xs text-gray-600"> - {event.clientName}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

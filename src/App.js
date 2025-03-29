@@ -8,7 +8,6 @@ import CalendarTab from './components/CalendarTab';
 import { db } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
-
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
   const [events, setEvents] = useState([]);
@@ -47,7 +46,8 @@ function App() {
       securityDeposit: '',
       notes: '',
       status: 'maybe',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      files: []  // Added to support multiple file attachments
     };
 
     try {
@@ -76,7 +76,7 @@ function App() {
     }
   };
 
-  // New: Save the entire updated event to Firestore
+  // Save the entire updated event to Firestore
   const saveEvent = async (updatedEvent) => {
     try {
       const docRef = doc(db, "events", updatedEvent.id);
@@ -114,7 +114,6 @@ function App() {
       console.error("💥 Failed to move event:", err);
     }
   };
-  
 
   // Move event to previous status
   const handleMoveLeftEvent = (id) => {
@@ -143,10 +142,10 @@ function App() {
     if (!confirmed) return;
   
     try {
-      // 🧨 Delete from Firestore
+      // Delete from Firestore
       await deleteDoc(doc(db, "events", id));
   
-      // 💨 Remove from local state
+      // Remove from local state
       const updatedEvents = events.filter(event => event.id !== id);
       setEvents(updatedEvents);
   
