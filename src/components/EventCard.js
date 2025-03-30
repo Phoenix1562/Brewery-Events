@@ -92,7 +92,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   return (
     <div className="relative transition-all duration-300">
       {collapsed ? (
-        // Collapsed view: horizontal layout with details and an expand arrow on the right
+        // Collapsed view: horizontal layout with details, an expand arrow, and a final payment indicator if set.
         <div 
           className="bg-white p-4 border border-gray-400 rounded-xl shadow-sm hover:shadow-md transition duration-300 cursor-pointer flex items-center justify-between"
           onClick={() => setCollapsed(false)}
@@ -112,16 +112,23 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
               }) : <em>None</em>}
             </span>
           </div>
-          <button 
-            onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
-            title="Expand event details"
-            className="text-xs text-gray-600 hover:text-black"
-          >
-            ▼
-          </button>
+          <div className="flex items-center space-x-2">
+            {localEvent.finalPaymentReceived && (
+              <span className="text-xs font-bold text-green-600">
+                Paid in Full
+              </span>
+            )}
+            <button 
+              onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
+              title="Expand event details"
+              className="text-xs text-gray-600 hover:text-black"
+            >
+              ▼
+            </button>
+          </div>
         </div>
       ) : (
-        // Expanded view: editable form with a top-right collapse button and file upload section
+        // Expanded view: editable form with a top-right collapse button, file upload, and separate grid cell for final payment.
         <div className="bg-gray-50 pl-2 pr-8 pt-2 pb-2 border border-gray-400 rounded-xl relative">
           {/* Collapse button at top right */}
           <button
@@ -214,7 +221,18 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
               onChange={(e) => handleChange('securityDeposit', e.target.value)}
               className="border p-2 text-sm"
             />
+            {/* New grid cell for Final Payment toggle */}
+            <div className="flex items-center">
+              <label className="mr-2 text-sm font-semibold">Final Payment:</label>
+              <input 
+                type="checkbox"
+                checked={localEvent.finalPaymentReceived || false}
+                onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
+                className="h-4 w-4"
+              />
+            </div>
           </div>
+
           <textarea
             placeholder="Notes"
             value={localEvent.notes}

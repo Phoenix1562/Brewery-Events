@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 
 function ExportModal({ visible, onClose, onConfirm }) {
-  // State for filtering options
   const [excludeFinished, setExcludeFinished] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   if (!visible) return null; // Render nothing if modal isn't visible
 
-  const handleConfirm = () => {
-    // Construct filter options object
+  // reportType: "internal" includes money info, "external" excludes it.
+  const handleConfirm = (reportType) => {
     const filterOptions = {
+      reportType, // "internal" or "external"
       finished: {
         exclude: excludeFinished,
-        start: startDate, // Expected in "YYYY-MM" format
-        end: endDate      // Expected in "YYYY-MM" format
+        start: startDate,
+        end: endDate
       }
     };
-    // Pass the filter options back to the parent component
     onConfirm(filterOptions);
-    // Close the modal
     onClose();
   };
 
@@ -73,10 +71,16 @@ function ExportModal({ visible, onClose, onConfirm }) {
             Cancel
           </button>
           <button 
-            onClick={handleConfirm}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            onClick={() => handleConfirm("external")}
+            className="px-4 py-2 bg-blue-400 text-white rounded"
           >
-            Export
+            External Report
+          </button>
+          <button 
+            onClick={() => handleConfirm("internal")}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Internal Report
           </button>
         </div>
       </div>
