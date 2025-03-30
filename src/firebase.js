@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getAuth } from 'firebase/auth'; // <-- Import getAuth
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbZOH0HFhD5DH_xxYB9XNt9asbid9gjAc",
@@ -17,17 +18,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 // IMPORTANT: We're explicitly specifying the actual bucket here:
 const storage = getStorage(app, "gs://brewery-events.firebasestorage.app");
+const auth = getAuth(app); // <-- Initialize and export auth
 
 /**
  * Uploads a file to Firebase Storage under a path based on the event ID.
  * Returns an object with the file's name, download URL, and storage path.
- * 
- * @param {File} file - The file to be uploaded.
- * @param {string} eventId - The ID of the event this file is associated with.
- * @returns {Promise<{name: string, url: string, path: string}>}
  */
 async function uploadFile(file, eventId) {
-  // Build a path: "events/{eventId}/{file.name}"
   const filePath = `events/${eventId}/${file.name}`;
   const storageRef = ref(storage, filePath);
   await uploadBytes(storageRef, file);
@@ -37,13 +34,10 @@ async function uploadFile(file, eventId) {
 
 /**
  * Deletes a file from Firebase Storage using its storage path.
- * 
- * @param {string} filePath - The storage path of the file to delete.
- * @returns {Promise<void>}
  */
 async function deleteFile(filePath) {
   const fileRef = ref(storage, filePath);
   await deleteObject(fileRef);
 }
 
-export { db, uploadFile, deleteFile };
+export { db, auth, uploadFile, deleteFile };

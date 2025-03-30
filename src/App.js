@@ -1,19 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
 import CalendarTab from './components/CalendarTab';
-import ExportModal from './components/ExportModal'; // NEW: Import Export Modal
-import { db } from './firebase';
+import ExportModal from './components/ExportModal';
+import AuthForm from './components/AuthForm';
+import { db, auth } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { exportEventsToExcel } from './utils/export'; // NEW: Import export helper
+import { exportEventsToExcel } from './utils/export';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
+  // All hooks are called unconditionally at the top.
   const [currentTab, setCurrentTab] = useState('maybe');
   const [events, setEvents] = useState([]);
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Memoize allowedEmails so its reference stays stable.
+  const allowedEmails = useMemo(() => [
+    'knuthmitchell@gmail.com',
+    'jknuth@johnsonville.com',
+    // Add more allowed emails here
+  ], []);
+
+  // Monitor auth state and enforce the greenlist.
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+      if (currentUser) {
+        if (!allowedEmails.includes(currentUser.email)) {
+          alert("Sorry, your email is not permitted to access this app.");
+          signOut(auth);
+        } else {
+          console.log("Allowed user signed in:", currentUser.email);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [allowedEmails]);
 
   // Load events from Firestore on component mount
   useEffect(() => {
@@ -50,7 +79,7 @@ function App() {
       notes: '',
       status: 'maybe',
       createdAt: new Date().toISOString(),
-      files: []  // Added to support multiple file attachments
+      files: []  // Support multiple file attachments
     };
 
     try {
@@ -82,11 +111,10 @@ function App() {
   // Save the entire updated event to Firestore
   const saveEvent = async (updatedEvent) => {
     try {
-      const { id, ...fields } = updatedEvent; // Remove the id from the update payload
+      const { id, ...fields } = updatedEvent; // Remove id from update payload
       const docRef = doc(db, "events", id);
       await updateDoc(docRef, fields);
       console.log("✅ Event saved to Firebase:", id);
-      // Update local state with the full updated event if needed:
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
     } catch (err) {
       console.error("💥 Error saving event:", err);
@@ -99,12 +127,11 @@ function App() {
   
     let updatedEvent = { ...eventToUpdate, status: newStatus };
   
-    // When moving to finished, if the eventDate is empty or invalid, default to today's date.
     if (
       newStatus === 'finished' &&
       (!eventToUpdate.eventDate || isNaN(new Date(eventToUpdate.eventDate)))
     ) {
-      updatedEvent.eventDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      updatedEvent.eventDate = new Date().toISOString().split('T')[0];
     }
   
     try {
@@ -119,7 +146,6 @@ function App() {
     }
   };
 
-  // Move event to previous status
   const handleMoveLeftEvent = (id) => {
     const event = events.find(e => e.id === id);
     if (!event) return;
@@ -130,7 +156,6 @@ function App() {
     }
   };
 
-  // Move event to next status
   const handleMoveRightEvent = (id) => {
     const event = events.find(e => e.id === id);
     if (!event) return;
@@ -146,13 +171,9 @@ function App() {
     if (!confirmed) return;
   
     try {
-      // Delete from Firestore
       await deleteDoc(doc(db, "events", id));
-  
-      // Remove from local state
       const updatedEvents = events.filter(event => event.id !== id);
       setEvents(updatedEvents);
-  
       console.log("🗑️ Deleted event:", id);
     } catch (err) {
       console.error("💥 Failed to delete event:", err);
@@ -168,7 +189,6 @@ function App() {
     });
   };
 
-  // For tabs (except statistics), filter events by status
   const filteredEvents = sortByDate(events.filter(e => e.status === currentTab));
 
   const renderTab = () => {
@@ -178,7 +198,7 @@ function App() {
           events={filteredEvents}
           addEvent={addEvent}
           onUpdate={updateEvent}
-          onSave={saveEvent}   // NEW save handler
+          onSave={saveEvent}
           onMoveLeft={null} // no left move in 'maybe'
           onMoveRight={handleMoveRightEvent}
           onDelete={deleteEvent}
@@ -189,7 +209,7 @@ function App() {
         <UpcomingTab 
           events={filteredEvents}
           onUpdate={updateEvent}
-          onSave={saveEvent}   // NEW save handler
+          onSave={saveEvent}
           onMoveLeft={handleMoveLeftEvent}
           onMoveRight={handleMoveRightEvent}
           onDelete={deleteEvent}
@@ -200,7 +220,7 @@ function App() {
         <FinishedTab 
           events={filteredEvents}
           onUpdate={updateEvent}
-          onSave={saveEvent}   // NEW save handler
+          onSave={saveEvent}
           onMoveLeft={handleMoveLeftEvent}
           onMoveRight={null} // no right move in 'finished'
           onDelete={deleteEvent}
@@ -213,29 +233,37 @@ function App() {
     }
   };
 
-  // Handler to confirm export options from the modal
   const handleExportConfirm = (filterOptions) => {
     exportEventsToExcel(events, filterOptions);
   };
 
-  return (
-    <div className="flex h-screen">
-      <Sidebar 
-        currentTab={currentTab} 
-        setCurrentTab={setCurrentTab} 
-        onExport={() => setExportModalVisible(true)}  // Open the export modal
-      />
-      <div className="flex-1 p-4 overflow-auto">
-        {renderTab()}
+  // Decide what to render based on authentication state.
+  let content;
+  if (loading) {
+    content = <div>Loading...</div>;
+  } else if (!user) {
+    content = <AuthForm />;
+  } else {
+    content = (
+      <div className="flex h-screen">
+        <Sidebar 
+          currentTab={currentTab} 
+          setCurrentTab={setCurrentTab} 
+          onExport={() => setExportModalVisible(true)}
+        />
+        <div className="flex-1 p-4 overflow-auto">
+          {renderTab()}
+        </div>
+        <ExportModal 
+          visible={exportModalVisible}
+          onClose={() => setExportModalVisible(false)}
+          onConfirm={handleExportConfirm}
+        />
       </div>
-      {/* Render the Export Modal */}
-      <ExportModal 
-        visible={exportModalVisible}
-        onClose={() => setExportModalVisible(false)}
-        onConfirm={handleExportConfirm}
-      />
-    </div>
-  );
+    );
+  }
+
+  return content;
 }
 
 export default App;
