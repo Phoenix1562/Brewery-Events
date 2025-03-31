@@ -11,24 +11,29 @@ const sortByDate = (arr) => {
 
 // Transforms an event into an object with specific fields.
 // includeMoney determines whether to include financial info.
+// The exported column order is now:
+// Client Name, Event Name, Event Date, Building Area, Number of Guests,
+// (money fields, if applicable), and finally Notes.
 const formatEventForExport = (event, includeMoney) => {
   const base = {
     'Client Name': event.clientName || '',
     'Event Name': event.eventName || '',
     'Event Date': event.eventDate ? new Date(event.eventDate) : '',
     'Building Area': event.buildingArea || '',
-    'Notes': event.notes || ''
+    'Number of Guests': event.numberOfGuests || ''
   };
 
   if (includeMoney) {
     base['Price Given'] = event.priceGiven || '';
     base['Down Payment Required'] = event.downPaymentRequired || '';
     base['Down Payment Received'] = event.downPaymentReceived ? 'Yes' : 'No';
-    base['Amount Due After'] = event.amountDueAfter || '';
     base['Amount Paid After'] = event.amountPaidAfter || '';
     base['Grand Total'] = event.grandTotal || '';
     base['Security Deposit'] = event.securityDeposit || '';
   }
+
+  // Notes always at the end.
+  base['Notes'] = event.notes || '';
 
   return base;
 };
@@ -88,14 +93,34 @@ export const exportEventsToExcel = (events, filterOptions = {}) => {
     if (!data.length) return; // Skip if there is no data
     const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: false });
     
-    // Optionally, adjust column widths here.
-    worksheet['!cols'] = [
-      { wch: 20 }, // Client Name
-      { wch: 20 }, // Event Name
-      { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
-      { wch: 15 }, // Building Area
-      { wch: 30 }  // Notes (or extra columns if money info is included)
-    ];
+    // Set column widths based on whether money info is included.
+    let cols;
+    if (includeMoney) {
+      cols = [
+        { wch: 20 }, // Client Name
+        { wch: 20 }, // Event Name
+        { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
+        { wch: 15 }, // Building Area
+        { wch: 15 }, // Number of Guests
+        { wch: 15 }, // Price Given
+        { wch: 20 }, // Down Payment Required
+        { wch: 20 }, // Down Payment Received
+        { wch: 15 }, // Amount Paid After
+        { wch: 15 }, // Grand Total
+        { wch: 15 }, // Security Deposit
+        { wch: 30 }  // Notes
+      ];
+    } else {
+      cols = [
+        { wch: 20 }, // Client Name
+        { wch: 20 }, // Event Name
+        { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
+        { wch: 15 }, // Building Area
+        { wch: 15 }, // Number of Guests
+        { wch: 30 }  // Notes
+      ];
+    }
+    worksheet['!cols'] = cols;
     
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   };

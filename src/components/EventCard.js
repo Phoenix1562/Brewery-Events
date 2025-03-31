@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { uploadFile, deleteFile } from '../firebase';
 
+// A reusable component for labeled inputs
+function LabeledInput({ label, type, value, onChange, ...rest }) {
+  return (
+    <div className="flex flex-col">
+      <label className="text-xs font-semibold text-gray-600 mb-1">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        className="border p-2 text-sm"
+        {...rest}
+      />
+    </div>
+  );
+}
+
 function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   const [collapsed, setCollapsed] = useState(true);
   const [localEvent, setLocalEvent] = useState(event);
-  const [isDirty, setIsDirty] = useState(false); // Flag for unsaved changes
+  const [isDirty, setIsDirty] = useState(false);
 
   // Update local state when event prop changes
   useEffect(() => {
@@ -17,7 +33,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
     setCollapsed(true);
   }, [event.status]);
 
-  // Native beforeunload handler to warn about unsaved changes
+  // Warn about unsaved changes on page unload
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isDirty) {
@@ -29,13 +45,13 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Update a field and mark unsaved changes
+  // Mark field changes as unsaved
   const handleChange = (field, value) => {
     setLocalEvent(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
 
-  // Handle file uploads
+  // File upload logic
   const handleFileUpload = async (e) => {
     const filesToUpload = Array.from(e.target.files);
     if (!filesToUpload.length) return;
@@ -54,7 +70,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
     }
   };
 
-  // Handle deletion of an attached file with auto-save after deletion
+  // Handle file deletion with auto-save
   const handleDeleteFile = async (file, index) => {
     if (window.confirm(`Delete file "${file.name}"?`)) {
       try {
@@ -64,11 +80,9 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
           files: localEvent.files.filter((_, i) => i !== index)
         };
         setLocalEvent(updatedEvent);
-        // Auto-save immediately after deletion so the change persists
         if (onSave) {
           await onSave(updatedEvent);
         }
-        // Mark as not dirty since changes are now saved
         setIsDirty(false);
         console.log(`Auto-saved deletion of ${file.name}. No ghosts left behind!`);
       } catch (err) {
@@ -92,7 +106,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
   return (
     <div className="relative transition-all duration-300">
       {collapsed ? (
-        // Collapsed view: horizontal layout with details, an expand arrow, and a final payment indicator if set.
+        // Collapsed view
         <div 
           className="bg-white p-4 border border-gray-400 rounded-xl shadow-sm hover:shadow-md transition duration-300 cursor-pointer flex items-center justify-between"
           onClick={() => setCollapsed(false)}
@@ -118,6 +132,11 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
                 Paid in Full
               </span>
             )}
+            {(localEvent.downPaymentRequired > 0 && !localEvent.downPaymentReceived) && (
+              <span className="text-xs font-bold text-red-600">
+                Awaiting Downpayment
+              </span>
+            )}
             <button 
               onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
               title="Expand event details"
@@ -128,9 +147,9 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
           </div>
         </div>
       ) : (
-        // Expanded view: editable form with a top-right collapse button, file upload, and separate grid cell for final payment.
-        <div className="bg-gray-50 pl-2 pr-8 pt-2 pb-2 border border-gray-400 rounded-xl relative">
-          {/* Collapse button at top right */}
+        // Expanded view with flex column so the Save button stays at the bottom
+        <div className="bg-gray-50 pl-2 pr-8 pt-2 pb-2 border border-gray-400 rounded-xl relative flex flex-col">
+          {/* Collapse button */}
           <button
             onClick={() => setCollapsed(true)}
             className="absolute top-2 right-2 p-2 rounded hover:bg-gray-200 text-sm text-gray-600 hover:text-black"
@@ -139,164 +158,157 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave }) {
             ▼
           </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input
-              type="text"
-              placeholder="Client Name"
-              value={localEvent.clientName}
-              onChange={(e) => handleChange('clientName', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="text"
-              placeholder="Event Name"
-              value={localEvent.eventName}
-              onChange={(e) => handleChange('eventName', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="date"
-              value={localEvent.eventDate}
-              onChange={(e) => handleChange('eventDate', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <select
-              value={localEvent.buildingArea}
-              onChange={(e) => handleChange('buildingArea', e.target.value)}
-              className="border p-2 text-sm"
-            >
-              <option value="">Select Area</option>
-              <option value="Brewhouse">Brewhouse</option>
-              <option value="Taphouse">Taphouse</option>
-              <option value="Hall">Hall</option>
-            </select>
-            <input
-              type="number"
-              placeholder="Price Given"
-              value={localEvent.priceGiven}
-              onChange={(e) => handleChange('priceGiven', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="number"
-              placeholder="Down Payment Required"
-              value={localEvent.downPaymentRequired}
-              onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <label className="flex items-center text-sm">
+          <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <input
-                type="checkbox"
-                checked={localEvent.downPaymentReceived}
-                onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-                className="mr-1"
+                type="text"
+                placeholder="Client Name"
+                value={localEvent.clientName}
+                onChange={(e) => handleChange('clientName', e.target.value)}
+                className="border p-2 text-sm"
               />
-              Down Payment Received
-            </label>
-            <input
-              type="number"
-              placeholder="Amount Due After"
-              value={localEvent.amountDueAfter}
-              onChange={(e) => handleChange('amountDueAfter', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="number"
-              placeholder="Food/Beverage Cost"
-              value={localEvent.amountPaidAfter}
-              onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="number"
-              placeholder="Grand Total"
-              value={localEvent.grandTotal}
-              onChange={(e) => handleChange('grandTotal', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            <input
-              type="number"
-              placeholder="Security Deposit"
-              value={localEvent.securityDeposit}
-              onChange={(e) => handleChange('securityDeposit', e.target.value)}
-              className="border p-2 text-sm"
-            />
-            {/* New grid cell for Final Payment toggle */}
-            <div className="flex items-center">
-              <label className="mr-2 text-sm font-semibold">Final Payment:</label>
-              <input 
-                type="checkbox"
-                checked={localEvent.finalPaymentReceived || false}
-                onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-                className="h-4 w-4"
+              <input
+                type="text"
+                placeholder="Event Name"
+                value={localEvent.eventName}
+                onChange={(e) => handleChange('eventName', e.target.value)}
+                className="border p-2 text-sm"
               />
-            </div>
-          </div>
+              <input
+                type="date"
+                value={localEvent.eventDate}
+                onChange={(e) => handleChange('eventDate', e.target.value)}
+                className="border p-2 text-sm"
+              />
+              <select
+                value={localEvent.buildingArea}
+                onChange={(e) => handleChange('buildingArea', e.target.value)}
+                className="border p-2 text-sm"
+              >
+                <option value="">Select Area</option>
+                <option value="Brewhouse">Brewhouse</option>
+                <option value="Taphouse">Taphouse</option>
+                <option value="Hall">Hall</option>
+              </select>
 
-          <textarea
-            placeholder="Notes"
-            value={localEvent.notes}
-            onChange={(e) => handleChange('notes', e.target.value)}
-            className="border p-2 mt-2 w-full text-sm"
-            rows="3"
-          ></textarea>
-
-          {/* File Upload Section */}
-          <div className="mt-2 flex items-center">
-            <div className="flex-1">
-              <label className="block text-sm font-semibold mb-1">
-                Attach Word Document(s):
+              {/* Number fields using LabeledInput */}
+              <LabeledInput
+                label="Price Given"
+                type="number"
+                value={localEvent.priceGiven}
+                onChange={(e) => handleChange('priceGiven', e.target.value)}
+              />
+              <LabeledInput
+                label="Down Payment Required"
+                type="number"
+                value={localEvent.downPaymentRequired}
+                onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
+              />
+              <label className="flex items-center text-sm">
+                <input
+                  type="checkbox"
+                  checked={localEvent.downPaymentReceived}
+                  onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
+                  className="mr-1"
+                />
+                Down Payment Received
               </label>
-              <input 
-                type="file" 
-                accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-                onChange={handleFileUpload}
-                className="border p-1 w-auto"
-                multiple
+              <LabeledInput
+                label="Number of Guests"
+                type="number"
+                value={localEvent.numberOfGuests || ''}
+                onChange={(e) => handleChange('numberOfGuests', e.target.value)}
               />
+              <LabeledInput
+                label="Food/Beverage Cost"
+                type="number"
+                value={localEvent.amountPaidAfter}
+                onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
+              />
+              <LabeledInput
+                label="Grand Total"
+                type="number"
+                value={localEvent.grandTotal}
+                onChange={(e) => handleChange('grandTotal', e.target.value)}
+              />
+              <LabeledInput
+                label="Security Deposit"
+                type="number"
+                value={localEvent.securityDeposit}
+                onChange={(e) => handleChange('securityDeposit', e.target.value)}
+              />
+              <div className="flex items-center">
+                <label className="mr-2 text-sm font-semibold">Final Payment:</label>
+                <input 
+                  type="checkbox"
+                  checked={localEvent.finalPaymentReceived || false}
+                  onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
+                  className="h-4 w-4"
+                />
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <textarea
+              placeholder="Notes"
+              value={localEvent.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
+              className="border p-2 mt-2 w-full text-sm"
+              rows="3"
+            ></textarea>
+
+            {/* Attachments Section moved under Notes */}
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold mb-1">Attachments</h4>
+              <div className="flex items-center">
+                <input 
+                  type="file" 
+                  accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                  onChange={handleFileUpload}
+                  className="border p-1 w-auto"
+                  multiple
+                />
+              </div>
+              {localEvent.files && localEvent.files.length > 0 && (
+                <ul className="list-disc list-inside text-sm mt-2">
+                  {localEvent.files.map((file, index) => (
+                    <li key={index} className="flex items-center justify-between">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {file.name}
+                      </a>
+                      <button
+                        onClick={() => handleDeleteFile(file, index)}
+                        className="text-red-500 text-xs ml-2"
+                        title="Delete this file"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            className="mt-2 px-4 py-1 bg-green-500 text-white rounded text-sm"
-            title="Save event changes"
-          >
-            Save
-          </button>
-
-          {/* List of attached files with Delete buttons */}
-          {localEvent.files && localEvent.files.length > 0 && (
-            <div className="mt-2">
-              <p className="text-sm font-semibold">Attached Files:</p>
-              <ul className="list-disc list-inside text-sm">
-                {localEvent.files.map((file, index) => (
-                  <li key={index} className="flex items-center justify-between">
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {file.name}
-                    </a>
-                    <button
-                      onClick={() => handleDeleteFile(file, index)}
-                      className="text-red-500 text-xs ml-2"
-                      title="Delete this file"
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {/* Save Button always at the bottom */}
+          <div className="mt-4">
+            <button
+              onClick={handleSave}
+              className="w-full px-4 py-1 bg-green-500 text-white rounded text-sm"
+              title="Save event changes"
+            >
+              Save
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Action Buttons (e.g., Move Left/Right, Delete event) */}
+      {/* Action Buttons */}
       {!collapsed && (
         <div className="mt-2 flex space-x-2">
           {localEvent.status !== 'maybe' && onMoveLeft && (

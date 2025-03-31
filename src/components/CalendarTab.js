@@ -22,7 +22,6 @@ function CalendarTab({ events }) {
   const [modalContent, setModalContent] = useState({ date: null, events: [] });
   useEffect(() => {
     const handleDocumentClick = (e) => {
-      // Ignore clicks inside modal container
       if (e.target.closest('.modal-content')) return;
       setModalOpen(false);
     };
@@ -40,8 +39,13 @@ function CalendarTab({ events }) {
   // State for the currently displayed date and calendar grid calculation
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Helper: Format Date as YYYY-MM-DD
-  const formatDate = (date) => date.toISOString().split('T')[0];
+  // Helper: Format Date as YYYY-MM-DD using local time
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  };
 
   // Navigation handlers
   const handlePrev = () => {
@@ -67,7 +71,6 @@ function CalendarTab({ events }) {
     }
   };
 
-  // When a day cell is clicked, open a modal with detailed info.
   const openModalForDate = (date, eventsForDay) => {
     setModalContent({ date, events: eventsForDay });
     setModalOpen(true);
@@ -98,14 +101,12 @@ function CalendarTab({ events }) {
     weeks.push(weekDays);
   }
 
-  // Get today's date for highlighting
   const todayStr = formatDate(new Date());
 
   return (
     <div className="p-4 relative">
       <h2 className="text-2xl font-bold mb-4">Calendar</h2>
-      
-      {/* Include Pending + View Mode Selector */}
+      {/* Pending + View Mode Selector */}
       <div className="flex items-center mb-4">
         <div className="flex items-center">
           <input 
