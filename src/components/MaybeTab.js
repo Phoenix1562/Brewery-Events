@@ -1,14 +1,11 @@
 import React from 'react';
 import EventCard from './EventCard';
 
-function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave }) {
+function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave, activeEventId }) {
   return (
     <div className="p-4">
-      {/* Title and Context */}
       <h2 className="text-2xl font-bold mb-2">Pending Events</h2>
-      <p className="mb-4 text-gray-600">
-      </p>
-
+      <p className="mb-4 text-gray-600"></p>
       <button
         onClick={addEvent}
         className="mb-4 bg-blue-500 text-white px-4 py-2 rounded"
@@ -26,7 +23,8 @@ function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelet
               onMoveLeft={onMoveLeft}
               onMoveRight={onMoveRight}
               onDelete={onDelete}
-              onSave={onSave} // ✅ Pass this down
+              onSave={onSave}
+              active={activeEventId === event.id}
             />
           </div>
         ))

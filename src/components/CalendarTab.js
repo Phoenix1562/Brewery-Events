@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function CalendarTab({ events }) {
+function CalendarTab({ events, onEventClick }) {
   // Persisted state with localStorage
   const [includePending, setIncludePending] = useState(() => {
     const stored = localStorage.getItem('calendarIncludePending');
@@ -45,6 +45,16 @@ function CalendarTab({ events }) {
     const month = ('0' + (date.getMonth() + 1)).slice(-2);
     const day = ('0' + date.getDate()).slice(-2);
     return `${year}-${month}-${day}`;
+  };
+
+  // Helper: Convert 24-hour time to 12-hour time with AM/PM
+  const formatTime12Hour = (time) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hourNum = parseInt(hours, 10);
+    const period = hourNum >= 12 ? 'PM' : 'AM';
+    const hour12 = hourNum % 12 || 12; // Convert 0 to 12 for midnight/noon
+    return `${hour12}:${minutes} ${period}`;
   };
 
   // Navigation handlers
@@ -147,11 +157,11 @@ function CalendarTab({ events }) {
       </div>
       
       {/* Calendar Grid */}
-      <table className="w-full border-collapse">
+      <table className="w-full table-fixed">
         <thead>
           <tr>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-              <th key={index} className="border p-2">{day}</th>
+              <th key={index} className="border p-2 w-32">{day}</th>
             ))}
           </tr>
         </thead>
@@ -159,27 +169,46 @@ function CalendarTab({ events }) {
           {weeks.map((week, wi) => (
             <tr key={wi}>
               {week.map((day, di) => {
-                if (!day) return <td key={di} className="border p-2 h-24"></td>;
+                if (!day) return <td key={di} className="border p-2 w-32 h-24 min-h-24"></td>;
                 const dateStr = formatDate(day);
                 const eventsForDay = filteredEvents.filter(e => e.eventDate === dateStr);
                 return (
                   <td 
                     key={di} 
-                    className={`border p-2 h-24 relative transition-colors rounded-md hover:bg-gray-50 ${dateStr === todayStr ? 'bg-blue-100' : ''}`}
-                    onClick={() => {}}
+                    className={`border p-2 w-32 h-24 min-h-24 relative transition-colors rounded-md hover:bg-gray-50 ${dateStr === todayStr ? 'bg-blue-100' : ''}`}
                   >
                     <div className="font-bold text-sm">{day.getDate()}</div>
-                    <div className="mt-1 space-y-1">
-                      {eventsForDay.slice(0, 2).map((event, i) => (
-                        <div 
-                          key={i} 
-                          className="bg-blue-500 text-white text-xs font-semibold px-1 py-0.5 rounded overflow-hidden whitespace-nowrap truncate"
-                        >
-                          {event.eventName || 'Unnamed'}
-                        </div>
-                      ))}
+                    <div className="mt-1 space-y-1 overflow-hidden">
+                      {eventsForDay.slice(0, 2).map((event, i) => {
+                        // Build a time string in 12-hour format
+                        let timeStr = "";
+                        if (event.allDay) {
+                          timeStr = "All Day";
+                        } else if (event.startTime) {
+                          timeStr = formatTime12Hour(event.startTime);
+                          if (event.endTime) {
+                            timeStr += " - " + formatTime12Hour(event.endTime);
+                          }
+                        }
+                        if (event.formSent) {
+                          timeStr += " (Form Sent)";
+                        }
+                        return (
+                          <button
+                            key={i}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onEventClick) onEventClick(event);
+                            }}
+                            className="bg-blue-500 text-white text-xs font-semibold px-1 py-0.5 rounded overflow-hidden whitespace-nowrap truncate block w-full text-left"
+                            title={`${event.eventName || 'Unnamed'} ${timeStr}`}
+                          >
+                            {event.eventName || 'Unnamed'} {timeStr && <span className="ml-1">[{timeStr}]</span>}
+                          </button>
+                        );
+                      })}
                       {eventsForDay.length > 2 && (
-                        <div className="text-xs text-gray-500">+{eventsForDay.length - 2} more</div>
+                        <div className="text-xs text-gray-500 truncate">+{eventsForDay.length - 2} more</div>
                       )}
                     </div>
                     {/* Info Icon */}
@@ -213,21 +242,36 @@ function CalendarTab({ events }) {
               onClick={() => setModalOpen(false)}
               title="Close"
             >
-              &times;
+              ×
             </button>
             <h4 className="text-lg font-bold mb-2">{modalContent.date && modalContent.date.toDateString()}</h4>
             {modalContent.events.length === 0 ? (
               <p className="text-sm">No events for this day.</p>
             ) : (
-              <ul className="space-y-1">
-                {modalContent.events.map((event, idx) => (
-                  <li key={idx} className="text-sm border-b pb-1">
-                    <span className="font-semibold">{event.eventName || 'Unnamed Event'}</span>
-                    {event.clientName && (
-                      <span className="italic text-xs text-gray-600"> - {event.clientName}</span>
-                    )}
-                  </li>
-                ))}
+              <ul className="space-y-2">
+                {modalContent.events.map((event, idx) => {
+                  // Build the time string in 12-hour format
+                  let timeStr = "";
+                  if (event.allDay) {
+                    timeStr = "All Day";
+                  } else if (event.startTime) {
+                    timeStr = formatTime12Hour(event.startTime);
+                    if (event.endTime) {
+                      timeStr += " - " + formatTime12Hour(event.endTime);
+                    }
+                  }
+                  return (
+                    <li key={idx} className="text-sm border-b pb-2">
+                      <div className="font-semibold">{event.eventName || 'Unnamed Event'}</div>
+                      {event.clientName && (
+                        <div className="text-xs text-gray-600">Client: {event.clientName}</div>
+                      )}
+                      <div className="text-xs text-gray-600">
+                        Time: {timeStr || 'Not specified'}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

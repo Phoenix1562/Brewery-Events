@@ -1,7 +1,7 @@
 import React from 'react';
 import EventCard from './EventCard';
 
-function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave }) {
+function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave, activeEventId }) {
   // Sort events by eventDate (earliest first)
   const sortedEvents = [...events].sort(
     (a, b) => new Date(a.eventDate) - new Date(b.eventDate)
@@ -41,6 +41,7 @@ function UpcomingTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
               onMoveRight={onMoveRight}
               onDelete={onDelete}
               onSave={onSave}
+              active={activeEventId === event.id}
             />
           </div>
         ))
