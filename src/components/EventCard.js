@@ -3,7 +3,6 @@ import { uploadFile, deleteFile } from '../firebase';
 
 // Helper function to format the date in the desired style
 function formatDate(dateString) {
-  // Append 'T00:00:00' to ensure proper local time interpretation
   const date = new Date(dateString + 'T00:00:00');
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -62,7 +61,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
   }, [isDirty]);
 
   const handleChange = (field, value) => {
-    setLocalEvent(prev => ({ ...prev, [field]: value }));
+    setLocalEvent((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
 
@@ -72,14 +71,14 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
     for (const file of filesToUpload) {
       try {
         const uploaded = await uploadFile(file, localEvent.id);
-        setLocalEvent(prev => ({
+        setLocalEvent((prev) => ({
           ...prev,
           files: prev.files ? [...prev.files, uploaded] : [uploaded]
         }));
         setIsDirty(true);
       } catch (err) {
-        console.error("File upload failed", err);
-        alert("Failed to upload file: " + file.name);
+        console.error('File upload failed', err);
+        alert('Failed to upload file: ' + file.name);
       }
     }
   };
@@ -88,7 +87,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
     if (window.confirm(`Delete file "${file.name}"?`)) {
       try {
         await deleteFile(file.path);
-        const updatedEvent = { 
+        const updatedEvent = {
           ...localEvent,
           files: localEvent.files.filter((_, i) => i !== index)
         };
@@ -96,8 +95,8 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
         if (onSave) await onSave(updatedEvent);
         setIsDirty(false);
       } catch (err) {
-        console.error("Failed to delete file", err);
-        alert("Failed to delete file: " + file.name);
+        console.error('Failed to delete file', err);
+        alert('Failed to delete file: ' + file.name);
       }
     }
   };
@@ -108,15 +107,15 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
       setCollapsed(true);
       setIsDirty(false);
     } else {
-      console.log("No save handler provided");
+      console.log('No save handler provided');
     }
   };
 
   return (
     <div className="relative transition-all duration-300">
       {collapsed ? (
-        // Collapsed view remains unchanged
-        <div 
+        // Collapsed view
+        <div
           className="bg-white p-4 border border-gray-400 rounded-xl shadow-sm hover:shadow-md transition duration-300 cursor-pointer flex items-center justify-between"
           onClick={() => setCollapsed(false)}
         >
@@ -128,22 +127,22 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
               <strong>Event:</strong> {localEvent.eventName || <em>None</em>}
             </span>
             <span className="text-sm">
-              <strong>Date:</strong> {localEvent.eventDate ? formatDate(localEvent.eventDate) : <em>None</em>}
+              <strong>Date:</strong>{' '}
+              {localEvent.eventDate ? formatDate(localEvent.eventDate) : <em>None</em>}
             </span>
           </div>
           <div className="flex items-center space-x-2">
             {localEvent.finalPaymentReceived && (
-              <span className="text-xs font-bold text-green-600">
-                Paid in Full
-              </span>
+              <span className="text-xs font-bold text-green-600">Paid in Full</span>
             )}
-            {(localEvent.downPaymentRequired > 0 && !localEvent.downPaymentReceived) && (
-              <span className="text-xs font-bold text-red-600">
-                Awaiting Downpayment
-              </span>
+            {localEvent.downPaymentRequired > 0 && !localEvent.downPaymentReceived && (
+              <span className="text-xs font-bold text-red-600">Awaiting Downpayment</span>
             )}
-            <button 
-              onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCollapsed(false);
+              }}
               title="Expand event details"
               className="text-xs text-gray-600 hover:text-black"
             >
@@ -152,8 +151,8 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
           </div>
         </div>
       ) : (
-        // Expanded view, reorganized for clarity and compactness
-        <div className="bg-gray-50 p-3 border border-gray-400 rounded-xl relative flex flex-col space-y-3">
+        // Expanded view with 4 columns
+        <div className="bg-gray-50 p-4 border border-gray-400 rounded-xl relative">
           {/* Collapse Button */}
           <button
             onClick={() => setCollapsed(true)}
@@ -163,8 +162,8 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
             ▼
           </button>
 
-          {/* Personal Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            {/* Row 1: Client, Event, Date, Building Area */}
             <LabeledInput
               label="Client Name"
               type="text"
@@ -184,9 +183,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
               onChange={(e) => handleChange('eventDate', e.target.value)}
             />
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-600 mb-1">
-                Building Area
-              </label>
+              <label className="text-xs font-semibold text-gray-600 mb-1">Building Area</label>
               <select
                 value={localEvent.buildingArea}
                 onChange={(e) => handleChange('buildingArea', e.target.value)}
@@ -198,54 +195,42 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
                 <option value="Hall">Hall</option>
               </select>
             </div>
-          </div>
 
-          {/* Time & Form Sent Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">Event Time</label>
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="time" 
-                  value={localEvent.startTime || ""}
-                  onChange={(e) => handleChange('startTime', e.target.value)}
-                  className="border p-1 text-sm rounded"
-                  disabled={localEvent.allDay}
-                />
-                <span className="text-sm text-gray-500">to</span>
-                <input 
-                  type="time" 
-                  value={localEvent.endTime || ""}
-                  onChange={(e) => handleChange('endTime', e.target.value)}
-                  className="border p-1 text-sm rounded"
-                  disabled={localEvent.allDay}
-                />
-                <label className="flex items-center gap-1">
-                  <input 
-                    type="checkbox" 
-                    checked={localEvent.allDay || false}
-                    onChange={(e) => handleChange('allDay', e.target.checked)}
-                    className="h-4 w-4"
-                  />
-                  <span className="text-xs">All Day</span>
-                </label>
-              </div>
+            {/* Row 2: Start Time, End Time, All Day, Form Sent */}
+            <LabeledInput
+              label="Start Time"
+              type="time"
+              value={localEvent.startTime || ''}
+              onChange={(e) => handleChange('startTime', e.target.value)}
+              disabled={localEvent.allDay}
+            />
+            <LabeledInput
+              label="End Time"
+              type="time"
+              value={localEvent.endTime || ''}
+              onChange={(e) => handleChange('endTime', e.target.value)}
+              disabled={localEvent.allDay}
+            />
+            <div className="flex items-center gap-1 mt-4">
+              <input
+                type="checkbox"
+                checked={localEvent.allDay || false}
+                onChange={(e) => handleChange('allDay', e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span className="text-xs">All Day</span>
             </div>
-            <div className="flex items-center">
-              <label className="flex items-center text-sm">
-                <input 
-                  type="checkbox" 
-                  checked={localEvent.formSent || false}
-                  onChange={(e) => handleChange('formSent', e.target.checked)}
-                  className="mr-1 h-4 w-4"
-                />
-                Form Sent
-              </label>
+            <div className="flex items-center gap-1 mt-4">
+              <input
+                type="checkbox"
+                checked={localEvent.formSent || false}
+                onChange={(e) => handleChange('formSent', e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span className="text-xs">Form Sent</span>
             </div>
-          </div>
 
-          {/* Financial & Additional Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* Row 3: Price, Down Payment Required, Down Payment Received, Number of Guests */}
             <LabeledInput
               label="Price Given"
               type="number"
@@ -258,7 +243,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
               value={localEvent.downPaymentRequired}
               onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
             />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mt-4">
               <input
                 type="checkbox"
                 checked={localEvent.downPaymentReceived}
@@ -273,6 +258,8 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
               value={localEvent.numberOfGuests || ''}
               onChange={(e) => handleChange('numberOfGuests', e.target.value)}
             />
+
+            {/* Row 4: Food/Beverage Cost, Grand Total, Security Deposit, Final Payment */}
             <LabeledInput
               label="Food/Beverage Cost"
               type="number"
@@ -291,63 +278,66 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
               value={localEvent.securityDeposit}
               onChange={(e) => handleChange('securityDeposit', e.target.value)}
             />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mt-4">
               <label className="text-sm font-semibold">Final Payment:</label>
-              <input 
+              <input
                 type="checkbox"
                 checked={localEvent.finalPaymentReceived || false}
                 onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
                 className="h-4 w-4"
               />
             </div>
-          </div>
 
-          {/* Notes Section */}
-          <textarea
-            placeholder="Notes"
-            value={localEvent.notes}
-            onChange={(e) => handleChange('notes', e.target.value)}
-            className="border p-2 w-full text-sm rounded mt-2"
-            rows="3"
-          ></textarea>
-
-          {/* Attachments Section */}
-          <div className="mt-2">
-            <h4 className="text-sm font-semibold mb-1">Attachments</h4>
-            <div className="flex items-center">
-              <input 
-                type="file" 
-                accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-                onChange={handleFileUpload}
-                className="border p-1 w-auto rounded"
-                multiple
-              />
+            {/* Row 5: Notes - Full width (col-span-4) */}
+            <div className="col-span-4">
+              <textarea
+                placeholder="Notes"
+                value={localEvent.notes}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                className="border p-2 w-full text-sm rounded"
+                rows="3"
+              ></textarea>
             </div>
-            {localEvent.files && localEvent.files.length > 0 && (
-              <ul className="list-disc list-inside text-sm mt-2">
-                {localEvent.files.map((file, index) => (
-                  <li key={index} className="flex items-center justify-between">
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {file.name}
-                    </a>
-                    <button
-                      onClick={() => handleDeleteFile(file, index)}
-                      className="text-red-500 text-xs ml-2"
-                      title="Delete this file"
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+
+            {/* Row 6: Attachments - Full width (col-span-4) */}
+            <div className="col-span-4">
+              <h4 className="text-sm font-semibold mb-1">Attachments</h4>
+              <div className="flex items-center">
+                <input
+                  type="file"
+                  accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileUpload}
+                  className="border p-1 w-auto rounded"
+                  multiple
+                />
+              </div>
+              {localEvent.files && localEvent.files.length > 0 && (
+                <ul className="list-disc list-inside text-sm mt-2">
+                  {localEvent.files.map((file, index) => (
+                    <li key={index} className="flex items-center justify-between">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {file.name}
+                      </a>
+                      <button
+                        onClick={() => handleDeleteFile(file, index)}
+                        className="text-red-500 text-xs ml-2"
+                        title="Delete this file"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-          {/* Save Button */}
+
+          {/* Save Button - full width at bottom */}
           <div className="mt-3">
             <button
               onClick={handleSave}
@@ -364,11 +354,11 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
       {!collapsed && (
         <div className="mt-2 flex space-x-2">
           {localEvent.status !== 'maybe' && onMoveLeft && (
-            <button 
+            <button
               className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
               onClick={() => {
                 if (isDirty) {
-                  alert("Please save the event first!");
+                  alert('Please save the event first!');
                 } else {
                   onMoveLeft(localEvent.id);
                 }
@@ -379,11 +369,11 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
             </button>
           )}
           {localEvent.status !== 'finished' && onMoveRight && (
-            <button 
+            <button
               className="bg-green-500 text-white px-3 py-1 rounded text-sm"
               onClick={() => {
                 if (isDirty) {
-                  alert("Please save the event first!");
+                  alert('Please save the event first!');
                 } else {
                   onMoveRight(localEvent.id);
                 }
@@ -394,7 +384,7 @@ function EventCard({ event, onMoveLeft, onMoveRight, onDelete, onSave, active })
             </button>
           )}
           {onDelete && (
-            <button 
+            <button
               className="bg-red-500 text-white px-3 py-1 rounded text-sm"
               onClick={() => onDelete(localEvent.id)}
               title="Delete event"

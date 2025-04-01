@@ -12,13 +12,21 @@ const sortByDate = (arr) => {
 // Transforms an event into an object with specific fields.
 // includeMoney determines whether to include financial info.
 // The exported column order is now:
-// Client Name, Event Name, Event Date, Building Area, Number of Guests,
+// Client Name, Event Name, Event Date, Event Time, Building Area, Number of Guests,
 // (money fields, if applicable), and finally Notes.
 const formatEventForExport = (event, includeMoney) => {
+  // Combine start and end time if available.
+  const eventTime = event.startTime
+    ? event.endTime
+      ? `${event.startTime} - ${event.endTime}`
+      : event.startTime
+    : '';
+
   const base = {
     'Client Name': event.clientName || '',
     'Event Name': event.eventName || '',
     'Event Date': event.eventDate ? new Date(event.eventDate) : '',
+    'Event Time': eventTime,
     'Building Area': event.buildingArea || '',
     'Number of Guests': event.numberOfGuests || ''
   };
@@ -100,6 +108,7 @@ export const exportEventsToExcel = (events, filterOptions = {}) => {
         { wch: 20 }, // Client Name
         { wch: 20 }, // Event Name
         { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
+        { wch: 15 }, // Event Time
         { wch: 15 }, // Building Area
         { wch: 15 }, // Number of Guests
         { wch: 15 }, // Price Given
@@ -115,6 +124,7 @@ export const exportEventsToExcel = (events, filterOptions = {}) => {
         { wch: 20 }, // Client Name
         { wch: 20 }, // Event Name
         { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
+        { wch: 15 }, // Event Time
         { wch: 15 }, // Building Area
         { wch: 15 }, // Number of Guests
         { wch: 30 }  // Notes
