@@ -34,8 +34,9 @@ function EventCard({
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    setLocalEvent(event);
-    setIsDirty(false);
+    if (!isDirty) {
+      setLocalEvent(event);
+    }
   }, [event]);
 
   // Warn about unsaved changes on page unload
