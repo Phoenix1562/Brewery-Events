@@ -1,7 +1,8 @@
+// components/MaybeTab.js
 import React from 'react';
 import EventCard from './EventCard';
 
-function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave, activeEventId }) {
+function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave, onSelectEvent, activeEventId }) {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-2">Pending Events</h2>
@@ -16,7 +17,11 @@ function MaybeTab({ events, addEvent, onUpdate, onMoveLeft, onMoveRight, onDelet
         <p>No events in Pending.</p>
       ) : (
         events.map(event => (
-          <div key={event.id} className="mb-4">
+          <div
+            key={event.id}
+            className="mb-4 cursor-pointer"
+            onClick={() => onSelectEvent(event)}
+          >
             <EventCard
               event={event}
               onUpdate={onUpdate}
