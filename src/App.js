@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
@@ -23,6 +23,10 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState(null);
+  
+  // Reference to the side panel element and EventCard
+  const sidePanelRef = useRef(null);
+  const eventCardRef = useRef(null); // to access EventCard's handleClose
 
   const allowedEmails = useMemo(() => [
     'knuthmitchell@gmail.com',
@@ -54,6 +58,31 @@ function App() {
     fetchEvents();
   }, []);
 
+  // Auto-save handler that triggers EventCard's handleClose
+  const handleSidePanelClose = () => {
+    if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+      eventCardRef.current.handleClose();
+    } else {
+      setActiveEvent(null);
+    }
+  };
+
+  // Click-outside detection: auto-save before closing the panel.
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        activeEvent &&
+        sidePanelRef.current &&
+        !sidePanelRef.current.contains(event.target)
+      ) {
+        handleSidePanelClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeEvent]);
+
   const addEvent = async () => {
     const newEvent = {
       clientName: '',
@@ -78,16 +107,6 @@ function App() {
       setEvents(prev => [...prev, eventWithId]);
     } catch (err) {
       console.error("💥 Failed to save event:", err);
-    }
-  };
-
-  const updateEvent = async (id, field, value) => {
-    const updatedEvents = events.map(event => event.id === id ? { ...event, [field]: value } : event);
-    setEvents(updatedEvents);
-    try {
-      await updateDoc(doc(db, "events", id), { [field]: value });
-    } catch (err) {
-      console.error("💥 Failed to update event:", err);
     }
   };
 
@@ -138,6 +157,7 @@ function App() {
     try {
       await deleteDoc(doc(db, "events", id));
       setEvents(prev => prev.filter(event => event.id !== id));
+      setActiveEvent(null); // Close the side panel after deleting
     } catch (err) {
       console.error("💥 Failed to delete event:", err);
     }
@@ -148,7 +168,6 @@ function App() {
   const renderTab = () => {
     const props = {
       events: filteredEvents,
-      onUpdate: updateEvent,
       onSave: saveEvent,
       onMoveLeft: handleMoveLeftEvent,
       onMoveRight: handleMoveRightEvent,
@@ -189,66 +208,69 @@ function App() {
         {renderTab()}
       </div>
 
-      {/* SidePanel with EventCard and external action panel at the bottom */}
+      {/* SidePanel with EventCard and external action panel */}
       {activeEvent && (
-        <SidePanel isOpen={!!activeEvent} onClose={() => setActiveEvent(null)}>
-          {/* Render EventCard with internal actions hidden */}
-          <EventCard
-            event={activeEvent}
-            onUpdate={updateEvent}
-            onMoveLeft={handleMoveLeftEvent}
-            onMoveRight={handleMoveRightEvent}
-            onDelete={deleteEvent}
-            onSave={saveEvent}
-            setActiveEvent={setActiveEvent}
-            active={true}
-            hideActions={true}
-          />
-          {/* External Action Panel Positioned at the bottom of the SidePanel */}
-          <AnimatePresence>
-            {activeEvent && (
-              <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
-                transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-                className="flex flex-col space-y-2 bg-white p-4 border-t mt-4"
-                style={{ width: '100%' }}
-              >
-                <button
-                  onClick={() => saveEvent(activeEvent)}
-                  className="bg-green-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-green-600 transition"
+        <div ref={sidePanelRef}>
+          <SidePanel isOpen={!!activeEvent} onClose={handleSidePanelClose}>
+            {/* Render EventCard with its internal actions hidden */}
+            <EventCard
+              ref={eventCardRef}  // Passing ref to access handleClose
+              event={activeEvent}
+              onMoveLeft={handleMoveLeftEvent}
+              onMoveRight={handleMoveRightEvent}
+              onDelete={deleteEvent}
+              onSave={saveEvent}
+              setActiveEvent={setActiveEvent}
+              active={true}
+              hideActions={true}
+            />
+            {/* External Action Panel */}
+            <AnimatePresence>
+              {activeEvent && (
+                <motion.div
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+                  className="flex flex-col space-y-2 bg-white p-4 border-t mt-4"
+                  style={{ width: '100%' }}
                 >
-                  Save
-                </button>
-                <button
-                  onClick={() => handleMoveRightEvent(activeEvent.id)}
-                  className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                >
-                  Move Right &rarr;
-                </button>
-                <button
-                  onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                  className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                >
-                  &larr; Move Left
-                </button>
-                <button
-                  onClick={() => deleteEvent(activeEvent.id)}
-                  className="bg-red-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-red-600 transition"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setActiveEvent(null)}
-                  className="text-red-500 w-full text-sm underline"
-                >
-                  Close
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </SidePanel>
+                  {/* Updated Save button now calls handleSidePanelClose */}
+                  <button
+                    onClick={handleSidePanelClose}
+                    className="bg-green-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-green-600 transition"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => handleMoveRightEvent(activeEvent.id)}
+                    className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
+                  >
+                    Move Right &rarr;
+                  </button>
+                  <button
+                    onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                    className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
+                  >
+                    &larr; Move Left
+                  </button>
+                  <button
+                    onClick={() => deleteEvent(activeEvent.id)}
+                    className="bg-red-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-red-600 transition"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={handleSidePanelClose}
+                    className="text-red-500 w-full text-sm underline"
+                  >
+                    Close
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </SidePanel>
+        </div>
       )}
 
       <ExportModal

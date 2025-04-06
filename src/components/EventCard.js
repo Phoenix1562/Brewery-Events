@@ -1,5 +1,5 @@
 // components/EventCard.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { uploadFile, deleteFile } from '../firebase';
 
 function LabeledInput({ label, type, value, onChange, placeholder, disabled, ...rest }) {
@@ -19,27 +19,25 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, ...
   );
 }
 
-function EventCard({
-  event,
-  onMoveLeft,
-  onMoveRight,
-  onDelete,
-  onSave,
-  onUpdate,
-  active,
-  setActiveEvent,
-  hideActions = false // New prop: if true, internal action buttons are not rendered.
-}) {
+function EventCard(props, ref) {
+  const {
+    event,
+    onMoveLeft,
+    onMoveRight,
+    onDelete,
+    onSave,
+    active,
+    setActiveEvent,
+    hideActions = false, // if true, internal action buttons are not rendered
+  } = props;
+  
   const [localEvent, setLocalEvent] = useState(event);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    if (!isDirty) {
-      setLocalEvent(event);
-    }
+    setLocalEvent(event);
   }, [event]);
 
-  // Warn about unsaved changes on page unload
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isDirty) {
@@ -54,7 +52,6 @@ function EventCard({
   const handleChange = (field, value) => {
     setLocalEvent((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
-    if (onUpdate) onUpdate(event.id, field, value);
   };
 
   const handleFileUpload = async (e) => {
@@ -97,24 +94,29 @@ function EventCard({
     if (onSave) {
       onSave(localEvent);
       setIsDirty(false);
-      if (setActiveEvent) setActiveEvent(null);
     } else {
       console.log('No save handler provided');
     }
   };
 
   const handleClose = () => {
+    if (isDirty && onSave) {
+      onSave(localEvent);
+      setIsDirty(false);
+    }
     if (setActiveEvent) setActiveEvent(null);
   };
 
-  // Define container styles. "relative" enables absolute positioning.
+  useImperativeHandle(ref, () => ({
+    handleClose,
+  }));
+
   const containerClass = active
     ? 'bg-white shadow-lg rounded-xl p-6 relative'
     : 'bg-white shadow-md rounded-lg p-4 relative';
 
   return (
     <div className={containerClass}>
-      {/* Internal action buttons – rendered only if hideActions is false */}
       {!hideActions && active && (
         <div className="absolute top-4 left-4 flex flex-col space-y-2 z-50">
           <button
@@ -165,8 +167,6 @@ function EventCard({
           )}
         </div>
       )}
-
-      {/* Optional close button for the side panel */}
       {active && (
         <div className="flex justify-end">
           <button onClick={handleClose} className="text-red-500 text-sm hover:underline">
@@ -174,8 +174,6 @@ function EventCard({
           </button>
         </div>
       )}
-
-      {/* Event Details Section */}
       <section className="mb-6">
         <h3 className="text-lg font-bold mb-3 border-b pb-1">Event Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,8 +251,6 @@ function EventCard({
           />
         </div>
       </section>
-
-      {/* Payment Details Section */}
       <section className="mb-6">
         <h3 className="text-lg font-bold mb-3 border-b pb-1">Payment Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -313,8 +309,6 @@ function EventCard({
           </div>
         </div>
       </section>
-
-      {/* Attachments & Notes Section */}
       <section className="mb-6">
         <h3 className="text-lg font-bold mb-3 border-b pb-1">Attachments &amp; Notes</h3>
         <div className="mb-4">
@@ -365,4 +359,4 @@ function EventCard({
   );
 }
 
-export default EventCard;
+export default forwardRef(EventCard);

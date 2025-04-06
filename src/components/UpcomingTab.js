@@ -1,5 +1,6 @@
 // components/UpcomingTab.js
 import React from 'react';
+import EventPreviewCard from './EventPreviewCard';
 
 function UpcomingTab({ events, onSelectEvent }) {
   const sortedEvents = [...events].sort(
@@ -22,19 +23,12 @@ function UpcomingTab({ events, onSelectEvent }) {
         </p>
       ) : (
         sortedEvents.map(event => (
-          <div
+          <EventPreviewCard
             key={event.id}
-            className={`mb-4 p-4 bg-white rounded shadow cursor-pointer hover:shadow-md ${
-              firstEventDate && event.eventDate === firstEventDate ? 'border-l-4 border-blue-500 pl-2' : ''
-            }`}
+            event={event}
             onClick={() => onSelectEvent(event)}
-          >
-            <div>
-              <p><strong>Client:</strong> {event.clientName || 'None'}</p>
-              <p><strong>Event:</strong> {event.eventName || 'None'}</p>
-              <p><strong>Date:</strong> {event.eventDate || 'None'}</p>
-            </div>
-          </div>
+            highlight={firstEventDate && event.eventDate === firstEventDate}
+          />
         ))
       )}
     </div>

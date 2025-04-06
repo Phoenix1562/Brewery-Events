@@ -1,22 +1,18 @@
+// components/FinishedTab.js
 import React, { useMemo, useState } from 'react';
-import EventCard from './EventCard';
+import EventPreviewCard from './EventPreviewCard';
 
-function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSave }) {
-  // Filter for finished events with valid dates
+function FinishedTab({ events, onSelectEvent }) {
+  // Filter finished events
   const finishedEvents = events.filter(e => e.status === 'finished');
 
   // Filter mode: "month" or "range"
   const [filterMode, setFilterMode] = useState('month');
-  
-  // For "month" mode: selected year and month (strings)
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
-  
-  // For "date range" mode: start and end dates
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Compute displayed events based on filter mode
   const displayedEvents = useMemo(() => {
     if (filterMode === 'month') {
       if (selectedYear && selectedMonth) {
@@ -37,7 +33,6 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
     }
   }, [finishedEvents, filterMode, selectedYear, selectedMonth, startDate, endDate]);
 
-  // Available years from finished events (for "month" mode dropdown)
   const availableYears = useMemo(() => {
     const yearSet = new Set();
     finishedEvents.forEach(e => {
@@ -47,7 +42,6 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
     return Array.from(yearSet).sort();
   }, [finishedEvents]);
 
-  // Months (as two-digit strings, 01 to 12)
   const availableMonths = Array.from({ length: 12 }, (_, i) =>
     ('0' + (i + 1)).slice(-2)
   );
@@ -59,14 +53,14 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
       {/* Filter Mode Toggle */}
       <div className="mb-4 flex space-x-4">
         <button 
-          onClick={() => { setFilterMode('month'); }}
-          className={`px-4 py-2 rounded ${filterMode === 'month' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+          onClick={() => setFilterMode('month')}
+          className={`px-4 py-2 rounded ${filterMode === 'month' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
         >
           Select Month
         </button>
         <button 
-          onClick={() => { setFilterMode('range'); }}
-          className={`px-4 py-2 rounded ${filterMode === 'range' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+          onClick={() => setFilterMode('range')}
+          className={`px-4 py-2 rounded ${filterMode === 'range' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
         >
           Date Range
         </button>
@@ -125,27 +119,21 @@ function FinishedTab({ events, onUpdate, onMoveLeft, onMoveRight, onDelete, onSa
         </div>
       )}
 
-      {/* Overall Totals */}
       <div className="mb-4">
         <p><strong>Total Finished Events:</strong> {displayedEvents.length}</p>
       </div>
 
-      {/* Display events for the selected filter */}
+      {/* Render a summary card for each event */}
       {displayedEvents.length === 0 ? (
         <p>No finished events found for the selected period.</p>
       ) : (
         <div className="space-y-4">
           {displayedEvents.map(event => (
-            <div key={event.id} className="mb-4">
-              <EventCard
-                event={event}
-                onUpdate={onUpdate}
-                onMoveLeft={onMoveLeft}
-                onMoveRight={onMoveRight}
-                onDelete={onDelete}
-                onSave={onSave} // ✅ Added here!
-              />
-            </div>
+            <EventPreviewCard
+              key={event.id}
+              event={event}
+              onClick={() => onSelectEvent(event)}
+            />
           ))}
         </div>
       )}
