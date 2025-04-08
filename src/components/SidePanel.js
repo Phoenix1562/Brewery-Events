@@ -1,13 +1,29 @@
 // src/components/SidePanel.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function SidePanel({ isOpen, onClose, children }) {
-  // The panel will start at 30% from the left and extend to the right edge.
-  // If you want to adjust the offset, change "left-[30%]" accordingly.
+  const [isVisible, setIsVisible] = useState(isOpen);
+  
+  // Handle open/close states
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+    }
+  }, [isOpen]);
+
+  // Handle the close with animation
+  const handleClose = () => {
+    setIsVisible(false);
+    // Only call onClose after animation completes
+    setTimeout(() => {
+      onClose();
+    }, 300); // Match this with your animation duration
+  };
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isVisible && (
         <>
           {/* Backdrop */}
           <motion.div
@@ -15,10 +31,10 @@ function SidePanel({ isOpen, onClose, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
           />
 
-          {/* Side Panel spanning from 30% from the left to the right */}
+          {/* Side Panel spanning from 40% from the left to the right */}
           <motion.div
             className="fixed top-0 left-[40%] right-0 h-full bg-white shadow-lg z-50 overflow-y-auto"
             initial={{ x: '100%' }}
