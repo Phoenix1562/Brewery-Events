@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Calendar, Filter, ChevronDown, ChevronUp, BarChart2, LineChart } from 'lucide-react';
 
 function StatisticsTab({ events }) {
   // Filter for finished events with valid dates
@@ -21,6 +22,9 @@ function StatisticsTab({ events }) {
   // For revenue comparison: select start and end month (in "YYYY-MM" format)
   const [comparisonStart, setComparisonStart] = useState('');
   const [comparisonEnd, setComparisonEnd] = useState('');
+  
+  // Show/hide filters
+  const [showFilters, setShowFilters] = useState(false);
 
   // Compute filtered finished events based on filter mode
   const filteredFinishedEvents = useMemo(() => {
@@ -52,13 +56,19 @@ function StatisticsTab({ events }) {
       const d = new Date(e.eventDate);
       if (!isNaN(d)) yearSet.add(d.getFullYear());
     });
-    return Array.from(yearSet).sort();
+    return Array.from(yearSet).sort((a, b) => b - a); // Sort newest first
   }, [finishedEvents]);
 
   // Months as two-digit strings (01 to 12)
   const availableMonths = Array.from({ length: 12 }, (_, i) =>
     ('0' + (i + 1)).slice(-2)
   );
+
+  // Month names
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
 
   // Overall Totals
   const overallCount = filteredFinishedEvents.length;
@@ -98,10 +108,6 @@ function StatisticsTab({ events }) {
   // Helper: Convert "YYYY-MM" to "Month Year" (e.g., "2023-03" => "March 2023")
   const getFormattedMonthYear = (key) => {
     const [year, month] = key.split('-');
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
     return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
   };
 
@@ -116,147 +122,242 @@ function StatisticsTab({ events }) {
     return comparisonStats.reduce((max, stat) => Math.max(max, stat.totalRevenue), 0);
   }, [comparisonStats]);
 
-  return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Statistics</h2>
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedYear('');
+    setSelectedMonth('');
+    setStartDate('');
+    setEndDate('');
+    setFilterMode('month');
+  };
 
-      {/* Sub-tabs for Overview vs Revenue Comparison */}
-      <div className="mb-4 flex space-x-4">
+  return (
+    <div className="p-6 bg-white rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <BarChart2 className="h-6 w-6 text-emerald-600 mr-2" />
+          <h2 className="text-2xl font-bold text-gray-800">Statistics</h2>
+        </div>
+        
         <button
-          onClick={() => setStatsTab('overview')}
-          className={`px-4 py-2 rounded ${statsTab === 'overview' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
         >
-          Overview
-        </button>
-        <button
-          onClick={() => setStatsTab('comparison')}
-          className={`px-4 py-2 rounded ${statsTab === 'comparison' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
-        >
-          Revenue Comparison
+          <Filter className="h-4 w-4" />
+          <span className="font-medium">{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
         </button>
       </div>
 
-      {/* Hide the filter UI if we're in the "comparison" tab */}
-      {statsTab === 'overview' && (
-        <div className="mb-4">
-          {/* Filter Mode Toggle */}
-          <div className="mb-4 flex space-x-4">
-            <button 
-              onClick={() => setFilterMode('month')}
-              className={`px-4 py-2 rounded ${filterMode === 'month' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              Select Month
-            </button>
-            <button 
-              onClick={() => setFilterMode('range')}
-              className={`px-4 py-2 rounded ${filterMode === 'range' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              Date Range
-            </button>
+      {/* Sub-tabs for Overview vs. Revenue Comparison */}
+      <div className="mb-4 flex space-x-4">
+        <button
+          onClick={() => setStatsTab('overview')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+            statsTab === 'overview'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+        >
+          <BarChart2 className="h-4 w-4" />
+          <span>Overview</span>
+        </button>
+        <button
+          onClick={() => setStatsTab('comparison')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+            statsTab === 'comparison'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+        >
+          <LineChart className="h-4 w-4" />
+          <span>Revenue Comparison</span>
+        </button>
+      </div>
+
+      {/* Expandable filters */}
+      {showFilters && (
+        <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-medium text-gray-700">Filter Options</h3>
+            {(selectedYear || selectedMonth || startDate || endDate) && (
+              <button 
+                onClick={clearFilters}
+                className="text-sm text-emerald-600 hover:text-emerald-800"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
+
+          {/* Filter Mode Toggle */}
+          <div className="mb-4">
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button 
+                onClick={() => setFilterMode('month')}
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  filterMode === 'month' 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                Month View
+              </button>
+              <button 
+                onClick={() => setFilterMode('range')}
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  filterMode === 'range' 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                Date Range
+              </button>
+            </div>
+          </div>
+
           {/* Filter Inputs */}
           {filterMode === 'month' ? (
-            <div className="mb-4 flex space-x-4 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-semibold mr-2">Year:</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="border p-1"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
                 >
                   <option value="">All Years</option>
                   {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
+                    <option key={year} value={year.toString()}>{year}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="font-semibold mr-2">Month:</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="border p-1"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
                 >
                   <option value="">All Months</option>
-                  {availableMonths.map(month => (
-                    <option key={month} value={month}>{month}</option>
+                  {availableMonths.map((month, index) => (
+                    <option key={month} value={month}>{monthNames[index]}</option>
                   ))}
                 </select>
               </div>
             </div>
           ) : (
-            <div className="mb-4 flex space-x-4 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-semibold mr-2">From:</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
                 <input 
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="border p-1"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
                 />
               </div>
               <div>
-                <label className="font-semibold mr-2">To:</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
                 <input 
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="border p-1"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
                 />
               </div>
             </div>
           )}
+        </div>
+      )}
 
-          {/* Overall Totals */}
-          <div className="mb-4">
-            <p><strong>Total Finished Events:</strong> {overallCount}</p>
-            <p><strong>Total Revenue:</strong> ${overallRevenue.toFixed(2)}</p>
+      {/* Results Summary */}
+      <div className="mb-6">
+        <div className="bg-emerald-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg p-4 border border-emerald-100 shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Finished Events</p>
+            <p className="text-2xl font-bold text-emerald-700">{overallCount}</p>
+            {(selectedYear || selectedMonth || startDate || endDate) && (
+              <p className="text-xs text-emerald-500 mt-1">
+                (filtered results)
+              </p>
+            )}
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-emerald-100 shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
+            <p className="text-2xl font-bold text-emerald-700">${overallRevenue.toFixed(2)}</p>
+            {(selectedYear || selectedMonth || startDate || endDate) && (
+              <p className="text-xs text-emerald-500 mt-1">
+                (filtered results)
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {statsTab === 'overview' && (
+        <div className="mb-6">
+          {/* Overview: Detailed Table */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="px-4 py-3 bg-emerald-50 rounded-t-lg border border-emerald-100">
+              <h3 className="text-lg font-semibold text-gray-800">Monthly Breakdown</h3>
+            </div>
+            
+            {stats.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-b-lg border border-t-0 border-emerald-100">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-2">No finished events to display statistics for the selected period.</p>
+                {(selectedYear || selectedMonth || startDate || endDate) && (
+                  <p className="text-sm text-gray-400">Try adjusting your filter settings</p>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-b-lg border border-t-0 border-emerald-100">
+                <table className="min-w-full text-sm bg-white">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-4 py-3 text-left font-medium text-gray-700">Month-Year</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-700">Event Count</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-700">Total Revenue</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-700">Room Utilization</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.map((stat, index) => (
+                      <tr
+                        key={stat.monthYear}
+                        className={`hover:bg-emerald-50 transition-colors ${
+                          index !== stats.length - 1 ? 'border-b border-gray-200' : ''
+                        }`}
+                      >
+                        <td className="px-4 py-3 text-gray-800 font-medium">
+                          {getFormattedMonthYear(stat.monthYear)}
+                        </td>
+                        <td className="px-4 py-3 text-gray-800">{stat.count}</td>
+                        <td className="px-4 py-3 text-gray-800 font-medium text-emerald-600">
+                          ${stat.totalRevenue.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="space-y-1">
+                            {Object.entries(stat.roomUsage).map(([room, count]) => (
+                              <div key={room} className="flex justify-between">
+                                <span className="text-gray-600">{room}:</span>
+                                <span className="font-medium">{count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Now show sub-tab content */}
-      {statsTab === 'overview' ? (
-        // Overview: Detailed Table
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Monthly Breakdown</h3>
-          {stats.length === 0 ? (
-            <p className="text-gray-500">No finished events to display statistics for the selected period.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm bg-white border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="border p-2 text-center">Month-Year</th>
-                    <th className="border p-2 text-center">Event Count</th>
-                    <th className="border p-2 text-center">Total Revenue</th>
-                    <th className="border p-2 text-left">Room Totals</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.map(stat => (
-                    <tr key={stat.monthYear} className="hover:bg-gray-50 transition-colors">
-                      <td className="border p-2 text-center">{getFormattedMonthYear(stat.monthYear)}</td>
-                      <td className="border p-2 text-center">{stat.count}</td>
-                      <td className="border p-2 text-center">${stat.totalRevenue.toFixed(2)}</td>
-                      <td className="border p-2">
-                        {Object.entries(stat.roomUsage).map(([room, count]) => (
-                          <div key={room} className="flex justify-between">
-                            <span className="font-semibold">{room}:</span>
-                            <span>{count}</span>
-                          </div>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : (
-        // Revenue Comparison: Select a start & end month, show bars for each month in range
-        <RevenueComparison 
+      {statsTab === 'comparison' && (
+        <RevenueComparison
           stats={stats}
           getFormattedMonthYear={getFormattedMonthYear}
           comparisonStart={comparisonStart}
@@ -269,7 +370,6 @@ function StatisticsTab({ events }) {
   );
 }
 
-// A separate component for clarity: Revenue Comparison sub-tab
 function RevenueComparison({
   stats,
   getFormattedMonthYear,
@@ -278,79 +378,135 @@ function RevenueComparison({
   comparisonEnd,
   setComparisonEnd,
 }) {
-  // Filter stats within the selected range (inclusive)
   const comparisonStats = useMemo(() => {
     if (!comparisonStart || !comparisonEnd) return [];
-    return stats.filter(s => s.monthYear >= comparisonStart && s.monthYear <= comparisonEnd);
+    return stats.filter(
+      s => s.monthYear >= comparisonStart && s.monthYear <= comparisonEnd
+    ).sort((a, b) => a.monthYear.localeCompare(b.monthYear));
   }, [stats, comparisonStart, comparisonEnd]);
 
-  // Compute maximum revenue among comparisonStats for scaling the bars
   const maxComparisonRevenue = useMemo(() => {
-    return comparisonStats.reduce((max, stat) => Math.max(max, stat.totalRevenue), 0);
+    return comparisonStats.reduce(
+      (max, stat) => Math.max(max, stat.totalRevenue),
+      0
+    );
   }, [comparisonStats]);
 
   return (
-    <div>
-      <h3 className="text-xl font-semibold mb-2">Revenue Comparison</h3>
-      {/* Start/End Month Selectors */}
-      <div className="flex space-x-4 mb-4">
-        <div>
-          <label className="font-semibold mr-2">Start Month:</label>
-          <select
-            value={comparisonStart}
-            onChange={(e) => setComparisonStart(e.target.value)}
-            className="border p-1"
-          >
-            <option value="">Select Start Month</option>
-            {stats.map(stat => (
-              <option key={stat.monthYear} value={stat.monthYear}>
-                {getFormattedMonthYear(stat.monthYear)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="font-semibold mr-2">End Month:</label>
-          <select
-            value={comparisonEnd}
-            onChange={(e) => setComparisonEnd(e.target.value)}
-            className="border p-1"
-          >
-            <option value="">Select End Month</option>
-            {stats.map(stat => (
-              <option key={stat.monthYear} value={stat.monthYear}>
-                {getFormattedMonthYear(stat.monthYear)}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="bg-white rounded-lg shadow-sm border border-emerald-100">
+      <div className="px-4 py-3 bg-emerald-50 rounded-t-lg border-b border-emerald-100">
+        <h3 className="text-lg font-semibold text-gray-800">Revenue Comparison</h3>
       </div>
-      {/* Show bars for each month in the selected range */}
-      {comparisonStart && comparisonEnd ? (
-        comparisonStats.length === 0 ? (
-          <p className="text-gray-500">No revenue data available for the selected range.</p>
-        ) : (
-          <div className="space-y-2">
-            {comparisonStats.map(stat => {
-              const widthPercent = maxComparisonRevenue > 0 ? (stat.totalRevenue / maxComparisonRevenue) * 100 : 0;
-              return (
-                <div key={stat.monthYear} className="flex items-center">
-                  <span className="w-32 text-sm font-semibold">{getFormattedMonthYear(stat.monthYear)}</span>
-                  <div className="flex-1 bg-gray-200 h-4 rounded">
-                    <div 
-                      className="bg-blue-500 h-4 rounded" 
-                      style={{ width: `${widthPercent}%` }}
-                    ></div>
-                  </div>
-                  <span className="ml-2 text-sm">${stat.totalRevenue.toFixed(2)}</span>
-                </div>
-              );
-            })}
+      
+      <div className="p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Start Month</label>
+            <select
+              value={comparisonStart}
+              onChange={(e) => setComparisonStart(e.target.value)}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
+            >
+              <option value="">Select Start Month</option>
+              {stats.map(stat => (
+                <option key={stat.monthYear} value={stat.monthYear}>
+                  {getFormattedMonthYear(stat.monthYear)}
+                </option>
+              ))}
+            </select>
           </div>
-        )
-      ) : (
-        <p className="text-gray-500">Please select both a start and end month for comparison.</p>
-      )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">End Month</label>
+            <select
+              value={comparisonEnd}
+              onChange={(e) => setComparisonEnd(e.target.value)}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
+            >
+              <option value="">Select End Month</option>
+              {stats.map(stat => (
+                <option key={stat.monthYear} value={stat.monthYear}>
+                  {getFormattedMonthYear(stat.monthYear)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        {comparisonStart && comparisonEnd ? (
+          comparisonStats.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <LineChart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No revenue data available for the selected range.</p>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {comparisonStats.map(stat => {
+                const widthPercent =
+                  maxComparisonRevenue > 0
+                    ? (stat.totalRevenue / maxComparisonRevenue) * 100
+                    : 0;
+                return (
+                  <div key={stat.monthYear} className="group relative">
+                    <div className="flex items-center">
+                      <span className="w-36 text-sm font-medium text-gray-700">
+                        {getFormattedMonthYear(stat.monthYear)}
+                      </span>
+                      <div className="flex-1">
+                        <div className="relative h-8 bg-gray-100 rounded-md">
+                          <div
+                            className="absolute top-0 left-0 h-8 bg-emerald-500 rounded-md transition-all duration-500 ease-out group-hover:bg-emerald-600"
+                            style={{ width: `${widthPercent}%` }}
+                          >
+                            <span className="absolute top-0 right-0 bottom-0 px-2 flex items-center text-xs font-medium text-white">
+                              ${stat.totalRevenue.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-1 flex justify-between text-xs">
+                      <span className="text-gray-500">{stat.count} events</span>
+                      <span className="text-emerald-500 font-medium">
+                        Avg: ${(stat.totalRevenue / stat.count).toFixed(2)} per event
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Summary card */}
+              <div className="mt-8 bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Period Summary</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-emerald-100">
+                    <p className="text-xs text-gray-500 mb-1">Total Events</p>
+                    <p className="text-lg font-bold text-gray-800">
+                      {comparisonStats.reduce((sum, stat) => sum + stat.count, 0)}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-emerald-100">
+                    <p className="text-xs text-gray-500 mb-1">Total Revenue</p>
+                    <p className="text-lg font-bold text-emerald-600">
+                      ${comparisonStats.reduce((sum, stat) => sum + stat.totalRevenue, 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-emerald-100">
+                    <p className="text-xs text-gray-500 mb-1">Average per Month</p>
+                    <p className="text-lg font-bold text-emerald-600">
+                      ${(comparisonStats.reduce((sum, stat) => sum + stat.totalRevenue, 0) / comparisonStats.length).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Please select both a start and end month for comparison.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
