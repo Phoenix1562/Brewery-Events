@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MaybeTab from './components/MaybeTab';
@@ -23,16 +22,17 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState(null);
-  
-  // Reference to the side panel element and EventCard
+
+  // Refs for side panel and inner EventCard actions
   const sidePanelRef = useRef(null);
-  const eventCardRef = useRef(null); // to access EventCard's handleClose
+  const eventCardRef = useRef(null);
 
   const allowedEmails = useMemo(() => [
     'knuthmitchell@gmail.com',
     'jknuth@johnsonville.com',
   ], []);
 
+  // Authenticate user
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -45,6 +45,7 @@ function App() {
     return () => unsubscribe();
   }, [allowedEmails]);
 
+  // Fetch events from Firestore
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -52,13 +53,13 @@ function App() {
         const loadedEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setEvents(loadedEvents);
       } catch (err) {
-        console.error("💥 Failed to load events:", err);
+        console.error("Error loading events:", err);
       }
     };
     fetchEvents();
   }, []);
 
-  // Auto-save handler that triggers EventCard's handleClose
+  // Function to handle side panel close (auto-save via EventCard if available)
   const handleSidePanelClose = () => {
     if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
       eventCardRef.current.handleClose();
@@ -67,7 +68,7 @@ function App() {
     }
   };
 
-  // Click-outside detection: auto-save before closing the panel.
+  // Click-outside detection to auto-close the side panel
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -78,11 +79,11 @@ function App() {
         handleSidePanelClose();
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [activeEvent]);
 
+  // Function to add new event to Firestore
   const addEvent = async () => {
     const newEvent = {
       clientName: '',
@@ -103,68 +104,79 @@ function App() {
     };
     try {
       const docRef = await addDoc(collection(db, 'events'), newEvent);
-      const eventWithId = { id: docRef.id, ...newEvent };
-      setEvents(prev => [...prev, eventWithId]);
+      setEvents(prev => [...prev, { id: docRef.id, ...newEvent }]);
     } catch (err) {
-      console.error("💥 Failed to save event:", err);
+      console.error("Error saving event:", err);
     }
   };
 
+  // Save event changes
   const saveEvent = async (updatedEvent) => {
     try {
       const { id, ...fields } = updatedEvent;
       await updateDoc(doc(db, "events", id), fields);
-      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      setEvents(prev => prev.map(event => (event.id === id ? updatedEvent : event)));
     } catch (err) {
-      console.error("💥 Error saving event:", err);
+      console.error("Error saving event:", err);
     }
   };
 
+  // Move event to a new status
   const moveEvent = async (id, newStatus) => {
     const eventToUpdate = events.find(event => event.id === id);
     if (!eventToUpdate) return;
     const updatedEvent = {
       ...eventToUpdate,
       status: newStatus,
-      ...(newStatus === 'finished' && (!eventToUpdate.eventDate || isNaN(new Date(eventToUpdate.eventDate))) && {
-        eventDate: new Date().toISOString().split('T')[0]
-      })
+      ...(newStatus === 'finished' &&
+        (!eventToUpdate.eventDate || isNaN(new Date(eventToUpdate.eventDate))) && {
+          eventDate: new Date().toISOString().split('T')[0]
+        }
+      )
     };
     try {
       await updateDoc(doc(db, "events", id), updatedEvent);
       setEvents(prev => prev.map(event => (event.id === id ? updatedEvent : event)));
     } catch (err) {
-      console.error("💥 Failed to move event:", err);
+      console.error("Error moving event:", err);
     }
   };
 
   const handleMoveLeftEvent = (id) => {
     const event = events.find(e => e.id === id);
     if (!event) return;
-    if (event.status === 'upcoming') moveEvent(id, 'maybe');
-    else if (event.status === 'finished') moveEvent(id, 'upcoming');
+    if (event.status === 'upcoming') {
+      moveEvent(id, 'maybe');
+    } else if (event.status === 'finished') {
+      moveEvent(id, 'upcoming');
+    }
   };
 
   const handleMoveRightEvent = (id) => {
     const event = events.find(e => e.id === id);
     if (!event) return;
-    if (event.status === 'maybe') moveEvent(id, 'upcoming');
-    else if (event.status === 'upcoming') moveEvent(id, 'finished');
+    if (event.status === 'maybe') {
+      moveEvent(id, 'upcoming');
+    } else if (event.status === 'upcoming') {
+      moveEvent(id, 'finished');
+    }
   };
 
+  // Delete an event
   const deleteEvent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
       await deleteDoc(doc(db, "events", id));
       setEvents(prev => prev.filter(event => event.id !== id));
-      setActiveEvent(null); // Close the side panel after deleting
+      setActiveEvent(null);
     } catch (err) {
-      console.error("💥 Failed to delete event:", err);
+      console.error("Error deleting event:", err);
     }
   };
 
-  const filteredEvents = useMemo(() => events.filter(e => e.status === currentTab), [events, currentTab]);
+  const filteredEvents = events.filter(e => e.status === currentTab);
 
+  // Render the current tab with events
   const renderTab = () => {
     const props = {
       events: filteredEvents,
@@ -174,21 +186,29 @@ function App() {
       onDelete: deleteEvent,
       onSelectEvent: (event) => setActiveEvent(event),
     };
+
     switch (currentTab) {
-      case 'maybe': return <MaybeTab {...props} addEvent={addEvent} />;
-      case 'upcoming': return <UpcomingTab {...props} />;
-      case 'finished': return <FinishedTab {...props} onMoveRight={null} />;
-      case 'statistics': return <StatisticsTab events={events} />;
-      case 'calendar': return <CalendarTab events={events} />;
-      default: return null;
+      case 'maybe':
+        return <MaybeTab {...props} addEvent={addEvent} />;
+      case 'upcoming':
+        return <UpcomingTab {...props} />;
+      case 'finished':
+        return <FinishedTab {...props} onMoveRight={null} />;
+      case 'statistics':
+        return <StatisticsTab events={events} />;
+      case 'calendar':
+        return <CalendarTab events={events} />;
+      default:
+        return null;
     }
   };
 
+  // Export events to Excel functionality
   const handleExportConfirm = (filterOptions) => {
     exportEventsToExcel(events, filterOptions);
   };
 
-  // Close the side panel when the tab changes
+  // Auto-close side panel when changing tabs
   useEffect(() => {
     setActiveEvent(null);
   }, [currentTab]);
@@ -203,18 +223,23 @@ function App() {
         setCurrentTab={setCurrentTab}
         onExport={() => setExportModalVisible(true)}
       />
+
       {/* Main content area */}
       <div className="flex-1 p-4 overflow-auto relative">
         {renderTab()}
       </div>
 
-      {/* SidePanel with EventCard and external action panel */}
+      {/* SidePanel integration */}
       {activeEvent && (
         <div ref={sidePanelRef}>
-          <SidePanel isOpen={!!activeEvent} onClose={handleSidePanelClose}>
-            {/* Render EventCard with its internal actions hidden */}
+          <SidePanel 
+            isOpen={!!activeEvent} 
+            onClose={handleSidePanelClose}
+            title={activeEvent.eventName || 'Event Details'}
+          >
+            {/* Event details rendered via EventCard */}
             <EventCard
-              ref={eventCardRef}  // Passing ref to access handleClose
+              ref={eventCardRef}
               event={activeEvent}
               onMoveLeft={handleMoveLeftEvent}
               onMoveRight={handleMoveRightEvent}
@@ -224,7 +249,7 @@ function App() {
               active={true}
               hideActions={true}
             />
-            {/* External Action Panel */}
+            {/* External action panel */}
             <AnimatePresence>
               {activeEvent && (
                 <motion.div
@@ -235,7 +260,6 @@ function App() {
                   className="flex flex-col space-y-2 bg-white p-4 border-t mt-4"
                   style={{ width: '100%' }}
                 >
-                  {/* Updated Save button now calls handleSidePanelClose */}
                   <button
                     onClick={handleSidePanelClose}
                     className="bg-green-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-green-600 transition"
