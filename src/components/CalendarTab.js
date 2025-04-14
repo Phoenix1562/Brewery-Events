@@ -258,9 +258,11 @@ function CalendarTab({ events = [], onEventClick }) { // Added default value for
 
   // --- Render ---
   return (
-    <div className="p-4 relative">
+    <div className="p-4 relative w-full zoom-90">
+      
+      <div className="laptop:transform laptop:scale-[0.99] laptop:origin-top">
       <h2 className="text-2xl font-bold mb-4">Calendar</h2>
-
+      
       {/* Control Panel */}
       <div className="flex flex-wrap items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg gap-4">
         <div className="flex items-center mr-4 flex-shrink-0">
@@ -612,6 +614,7 @@ function CalendarTab({ events = [], onEventClick }) { // Added default value for
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
