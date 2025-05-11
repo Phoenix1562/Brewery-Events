@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { db } from '../firebase'; // Assuming this is how you import Firebase
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 
@@ -420,200 +421,235 @@ function CalendarTab({ events = [], onEventClick }) { // Added default value for
       </div>
 
       {/* Info Modal Overlay */}
-      {infoModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-40 p-4"
-          onClick={() => setInfoModalOpen(false)}
+{infoModalOpen && createPortal(
+  <div
+    className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-40 p-4"
+    onClick={() => setInfoModalOpen(false)}
+  >
+    <div
+      className="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col transform scale-[0.9] laptop:scale-100 laptop:translate-x-24 origin-top"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl leading-none p-1 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-full"
+        onClick={() => setInfoModalOpen(false)}
+        title="Close"
+        aria-label="Close modal"
+      >
+        &times;
+      </button>
+      <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+        {infoModalContent.date ? infoModalContent.date.toDateString() : 'Details'}
+      </h4>
+
+      {/* Scrollable Area */}
+      <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
+        {/* Notes section */}
+        <div>
+          <h5 className="text-base font-semibold mb-2 text-gray-700">Notes</h5>
+          {infoModalContent.notes.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No notes for this day.</p>
+          ) : (
+            <ul className="space-y-2">
+              {infoModalContent.notes.map((note) => (
+                <li
+                  key={`modal-note-${note.id}`}
+                  className="flex justify-between items-start p-2 rounded border border-gray-200"
+                  style={{ backgroundColor: note.color + '1A' }}
+                >
+                  <div className="flex-1 mr-2">
+                    <div className="font-semibold text-sm text-gray-800">{note.title}</div>
+                    {note.content && (
+                      <p className="text-xs text-gray-600 mt-0.5 whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <button
+                      onClick={() => { setInfoModalOpen(false); openNoteModalForEdit(note); }}
+                      className="text-blue-600 hover:text-blue-800 text-xs font-medium p-1 rounded hover:bg-blue-100"
+                      title="Edit note"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteCalendarNote(note.id)}
+                      className="text-red-500 hover:text-red-700 text-xs font-medium p-1 rounded hover:bg-red-100"
+                      title="Delete note"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Events section */}
+        <div>
+          <h5 className="text-base font-semibold mb-2 text-gray-700">Events</h5>
+          {infoModalContent.events.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No events scheduled for this day.</p>
+          ) : (
+            <ul className="space-y-2">
+              {infoModalContent.events.map((event) => {
+                const timeStr = event.allDay
+                  ? "All Day"
+                  : (formatTime12Hour(event.startTime) +
+                    (event.endTime ? ` - ${formatTime12Hour(event.endTime)}` : '')) || 'Not specified';
+                return (
+                  <li
+                    key={`modal-event-${event.id}`}
+                    className="text-sm border rounded p-2 shadow-sm bg-gray-50"
+                  >
+                    <div className="font-semibold text-gray-800">
+                      {event.eventName || 'Unnamed Event'}
+                    </div>
+                    {event.clientName && (
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        Client: {event.clientName}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-600 mt-0.5">Time: {timeStr}</div>
+                    {event.buildingArea && (
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        Area: {event.buildingArea}
+                      </div>
+                    )}
+                    {onEventClick && (
+                      <button
+                        onClick={() => { setInfoModalOpen(false); onEventClick(event); }}
+                        className="text-xs text-blue-600 hover:underline mt-1 font-medium"
+                      >
+                        View Full Details
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>{/* End Scrollable Area */}
+
+      {/* Add note button */}
+      <div className="mt-4 flex justify-end border-t pt-3">
+        <button
+          onClick={() => { setInfoModalOpen(false); openNoteModalForAdd(infoModalContent.date); }}
+          className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-1.5 rounded shadow-sm font-medium transition-colors"
         >
-          <div
-            className="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl leading-none p-1 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-full"
-              onClick={() => setInfoModalOpen(false)}
-              title="Close"
-              aria-label="Close modal"
-            >
-              &times;
-            </button>
-            <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">{infoModalContent.date ? infoModalContent.date.toDateString() : 'Details'}</h4>
+          Add Note for this Date
+        </button>
+      </div>
+    </div>
+  </div>,
+  document.body    // ← required second argument
+)}
 
-            {/* Scrollable Area */}
-            <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
-                 {/* Notes section */}
-                 <div>
-                     <h5 className="text-base font-semibold mb-2 text-gray-700">Notes</h5>
-                     {infoModalContent.notes.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">No notes for this day.</p>
-                     ) : (
-                         <ul className="space-y-2">
-                         {infoModalContent.notes.map((note) => (
-                             <li key={`modal-note-${note.id}`}
-                                 className="flex justify-between items-start p-2 rounded border border-gray-200"
-                                 style={{ backgroundColor: note.color + '1A' }} // Even lighter background
-                             >
-                             <div className="flex-1 mr-2">
-                                 <div className="font-semibold text-sm text-gray-800">{note.title}</div>
-                                 {note.content && <p className="text-xs text-gray-600 mt-0.5 whitespace-pre-wrap">{note.content}</p>}
-                             </div>
-                             <div className="flex items-center space-x-1 flex-shrink-0">
-                                 <button
-                                     onClick={() => { setInfoModalOpen(false); openNoteModalForEdit(note); }}
-                                     className="text-blue-600 hover:text-blue-800 text-xs font-medium p-1 rounded hover:bg-blue-100"
-                                     title="Edit note"
-                                 >
-                                     Edit
-                                 </button>
-                                 <button
-                                     onClick={() => deleteCalendarNote(note.id)}
-                                     className="text-red-500 hover:text-red-700 text-xs font-medium p-1 rounded hover:bg-red-100"
-                                     title="Delete note"
-                                 >
-                                     Delete
-                                 </button>
-                             </div>
-                             </li>
-                         ))}
-                         </ul>
-                     )}
-                 </div>
+{/* Note Creation/Edit Modal */}
+{noteModalOpen && createPortal(
+  <div
+    className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+    onClick={closeNoteModal}
+  >
+    <div
+      className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col transform scale-[0.9] laptop:scale-100 laptop:translate-x-24 origin-top"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+        {newNote.id ? 'Edit Note' : 'Add Calendar Note'}
+      </h4>
 
-                 {/* Events section */}
-                 <div>
-                     <h5 className="text-base font-semibold mb-2 text-gray-700">Events</h5>
-                     {infoModalContent.events.length === 0 ? (
-                         <p className="text-sm text-gray-500 italic">No events scheduled for this day.</p>
-                     ) : (
-                         <ul className="space-y-2">
-                         {infoModalContent.events.map((event) => {
-                             let timeStr = event.allDay ? "All Day" : (formatTime12Hour(event.startTime) + (event.endTime ? ` - ${formatTime12Hour(event.endTime)}` : '')) || 'Not specified';
-                             return (
-                             <li key={`modal-event-${event.id}`} className="text-sm border rounded p-2 shadow-sm bg-gray-50">
-                                 <div className="font-semibold text-gray-800">{event.eventName || 'Unnamed Event'}</div>
-                                 {event.clientName && (
-                                 <div className="text-xs text-gray-600 mt-0.5">Client: {event.clientName}</div>
-                                 )}
-                                 <div className="text-xs text-gray-600 mt-0.5">Time: {timeStr}</div>
-                                 {event.buildingArea && (
-                                 <div className="text-xs text-gray-600 mt-0.5">Area: {event.buildingArea}</div>
-                                 )}
-                                 {onEventClick && (
-                                     <button onClick={() => { setInfoModalOpen(false); onEventClick(event); }} className="text-xs text-blue-600 hover:underline mt-1 font-medium">
-                                         View Full Details
-                                     </button>
-                                 )}
-                             </li>
-                             );
-                         })}
-                         </ul>
-                     )}
-                 </div>
-            </div> {/* End Scrollable Area */}
+      {/* Scrollable Form Area */}
+      <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
+        {/* --- form fields stay exactly the same --- */}
+        <div>
+          <label htmlFor="noteTitle" className="block text-sm font-medium text-gray-700 mb-1">
+            Title <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="noteTitle"
+            type="text"
+            value={newNote.title}
+            onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+            className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter note title"
+            required
+          />
+        </div>
 
-            {/* Add note button */}
-            <div className="mt-4 flex justify-end border-t pt-3">
+        <div>
+          <label htmlFor="noteDate" className="block text-sm font-medium text-gray-700 mb-1">
+            Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="noteDate"
+            type="date"
+            value={newNote.date}
+            onChange={(e) => setNewNote({ ...newNote, date: e.target.value })}
+            className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Note Color</label>
+          <div className="flex space-x-2 flex-wrap gap-1">
+            {['#4299e1', '#48bb78', '#ed8936', '#f56565', '#9f7aea', '#667eea', '#ecc94b', '#38b2ac'].map(color => (
               <button
-                onClick={() => { setInfoModalOpen(false); openNoteModalForAdd(infoModalContent.date); }}
-                className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-1.5 rounded shadow-sm font-medium transition-colors"
-              >
-                Add Note for this Date
-              </button>
-            </div>
+                key={color}
+                type="button"
+                style={{ backgroundColor: color }}
+                className={`w-7 h-7 rounded-full cursor-pointer border-2 transition-all ${
+                  newNote.color === color
+                    ? 'border-gray-700 ring-2 ring-offset-1 ring-gray-500 scale-110'
+                    : 'border-transparent hover:scale-105'
+                }`}
+                onClick={() => setNewNote({ ...newNote, color })}
+                aria-label={`Select color ${color}`}
+              />
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Note Creation/Edit Modal */}
-      {noteModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" // Higher z-index
+        <div>
+          <label htmlFor="noteContent" className="block text-sm font-medium text-gray-700 mb-1">
+            Content (optional)
+          </label>
+          <textarea
+            id="noteContent"
+            value={newNote.content}
+            onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+            className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Add details (optional)"
+            rows="4"
+          />
+        </div>
+      </div>{/* End Scrollable Form Area */}
+
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-3 mt-6 border-t pt-4">
+        <button
+          type="button"
           onClick={closeNoteModal}
+          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
-          <div
-            className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
-              {newNote.id ? 'Edit Note' : 'Add Calendar Note'}
-            </h4>
-
-            {/* Scrollable Form Area */}
-             <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
-                 <div>
-                     <label htmlFor="noteTitle" className="block text-sm font-medium text-gray-700 mb-1">Title <span className="text-red-500">*</span></label>
-                     <input
-                     id="noteTitle"
-                     type="text"
-                     value={newNote.title}
-                     onChange={(e) => setNewNote({...newNote, title: e.target.value})}
-                     className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                     placeholder="Enter note title"
-                     required
-                     />
-                 </div>
-
-                 <div>
-                     <label htmlFor="noteDate" className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
-                     <input
-                     id="noteDate"
-                     type="date"
-                     value={newNote.date}
-                     onChange={(e) => setNewNote({...newNote, date: e.target.value})}
-                     className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                     required
-                     />
-                 </div>
-
-                 <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Note Color</label>
-                     <div className="flex space-x-2 flex-wrap gap-1">
-                         {['#4299e1', '#48bb78', '#ed8936', '#f56565', '#9f7aea', '#667eea', '#ecc94b', '#38b2ac'].map(color => ( // Example colors
-                             <button
-                                 key={color}
-                                 type="button"
-                                 style={{ backgroundColor: color }}
-                                 className={`w-7 h-7 rounded-full cursor-pointer border-2 transition-all ${newNote.color === color ? 'border-gray-700 ring-2 ring-offset-1 ring-gray-500 scale-110' : 'border-transparent hover:scale-105'}`}
-                                 onClick={() => setNewNote({...newNote, color})}
-                                 aria-label={`Select color ${color}`}
-                             />
-                         ))}
-                     </div>
-                 </div>
-
-                 <div>
-                     <label htmlFor="noteContent" className="block text-sm font-medium text-gray-700 mb-1">Content (optional)</label>
-                     <textarea
-                     id="noteContent"
-                     value={newNote.content}
-                     onChange={(e) => setNewNote({...newNote, content: e.target.value})}
-                     className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                     placeholder="Add details (optional)"
-                     rows="4"
-                     />
-                 </div>
-            </div> {/* End Scrollable Form Area */}
-
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-3 mt-6 border-t pt-4">
-              <button
-                type="button"
-                onClick={closeNoteModal}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveCalendarNote}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-colors"
-              >
-                {newNote.id ? 'Update Note' : 'Save Note'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={saveCalendarNote}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          {newNote.id ? 'Update Note' : 'Save Note'}
+        </button>
+      </div>
+    </div>
+  </div>,
+  document.body
+)}
       </div>
     </div>
   );
