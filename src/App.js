@@ -1,10 +1,11 @@
+// App.js
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MaybeTab from './components/MaybeTab';
 import UpcomingTab from './components/UpcomingTab';
 import FinishedTab from './components/FinishedTab';
 import StatisticsTab from './components/StatisticsTab';
-import CalendarTab from './components/CalendarTab';
+import CalendarTab from './components/CalendarTab'; // Ensure this is the updated CalendarTab
 import ExportModal from './components/ExportModal';
 import AuthForm from './components/AuthForm';
 import SidePanel from './components/SidePanel';
@@ -21,9 +22,8 @@ function App() {
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeEvent, setActiveEvent] = useState(null);
+  const [activeEvent, setActiveEvent] = useState(null); // For App.js's main SidePanel
 
-  // Refs for side panel and inner EventCard actions
   const sidePanelRef = useRef(null);
   const eventCardRef = useRef(null);
 
@@ -32,7 +32,6 @@ function App() {
     'jknuth@johnsonville.com',
   ], []);
 
-  // Authenticate user
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -45,7 +44,6 @@ function App() {
     return () => unsubscribe();
   }, [allowedEmails]);
 
-  // Fetch events from Firestore
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -59,16 +57,14 @@ function App() {
     fetchEvents();
   }, []);
 
-  // Function to handle side panel close (auto-save via EventCard if available)
   const handleSidePanelClose = () => {
     if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-      eventCardRef.current.handleClose();
+      eventCardRef.current.handleClose(); // This calls EventCard's internal close, which should call setActiveEvent(null)
     } else {
-      setActiveEvent(null);
+      setActiveEvent(null); // Fallback if ref or method not available
     }
   };
-
-  // Click-outside detection to auto-close the side panel
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -81,9 +77,8 @@ function App() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeEvent]);
+  }, [activeEvent]); // Dependency on activeEvent
 
-  // Function to add new event to Firestore
   const addEvent = async () => {
     const newEvent = {
       clientName: '',
@@ -110,22 +105,27 @@ function App() {
     }
   };
 
-  // Save event changes
   const saveEvent = async (updatedEvent) => {
     try {
-      const { id, ...fields } = updatedEvent;
+      const { id, ...fields } = updatedEvent; // Ensure id is extracted and not part of fields to update
       await updateDoc(doc(db, "events", id), fields);
       setEvents(prev => prev.map(event => (event.id === id ? updatedEvent : event)));
+      // If the updated event was the one in App.js's side panel, update activeEvent
+      // This is important if CalendarTab's EventCard saves an event that might also be open in App's panel.
+      // However, CalendarTab is intended to have its own panel, so this specific line might be more relevant
+      // for events edited through App.js's main panel.
+      if (activeEvent && activeEvent.id === id) {
+        setActiveEvent(updatedEvent);
+      }
     } catch (err) {
       console.error("Error saving event:", err);
     }
   };
 
-  // Move event to a new status
   const moveEvent = async (id, newStatus) => {
     const eventToUpdate = events.find(event => event.id === id);
     if (!eventToUpdate) return;
-    const updatedEvent = {
+    const updatedEventData = { // Renamed to avoid conflict with 'updatedEvent' variable name if it's in a broader scope
       ...eventToUpdate,
       status: newStatus,
       ...(newStatus === 'finished' &&
@@ -135,8 +135,8 @@ function App() {
       )
     };
     try {
-      await updateDoc(doc(db, "events", id), updatedEvent);
-      setEvents(prev => prev.map(event => (event.id === id ? updatedEvent : event)));
+      await updateDoc(doc(db, "events", id), updatedEventData);
+      setEvents(prev => prev.map(event => (event.id === id ? updatedEventData : event)));
     } catch (err) {
       console.error("Error moving event:", err);
     }
@@ -162,13 +162,15 @@ function App() {
     }
   };
 
-  // Delete an event
   const deleteEvent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
       await deleteDoc(doc(db, "events", id));
       setEvents(prev => prev.filter(event => event.id !== id));
-      setActiveEvent(null);
+      // If the deleted event was active in App.js's panel, close the panel
+      if (activeEvent && activeEvent.id === id) {
+        setActiveEvent(null);
+      }
     } catch (err) {
       console.error("Error deleting event:", err);
     }
@@ -176,119 +178,142 @@ function App() {
 
   const filteredEvents = events.filter(e => e.status === currentTab);
 
-  // Render the current tab with events
   const renderTab = () => {
-    const props = {
+    const commonTabProps = { // Renamed to avoid confusion with 'props' in function signature
       events: filteredEvents,
       onSave: saveEvent,
       onMoveLeft: handleMoveLeftEvent,
       onMoveRight: handleMoveRightEvent,
       onDelete: deleteEvent,
-      onSelectEvent: (event) => setActiveEvent(event),
+      onSelectEvent: (event) => setActiveEvent(event), // This opens App.js's main SidePanel
     };
 
     switch (currentTab) {
       case 'maybe':
-        return <MaybeTab {...props} addEvent={addEvent} />;
+        return <MaybeTab {...commonTabProps} addEvent={addEvent} />;
       case 'upcoming':
-        return <UpcomingTab {...props} />;
+        return <UpcomingTab {...commonTabProps} />;
       case 'finished':
-        return <FinishedTab {...props} onMoveRight={null} />;
+        return <FinishedTab {...commonTabProps} onMoveRight={null} />; // FinishedTab doesn't need moveRight
       case 'statistics':
-        return <StatisticsTab events={events} />;
+        return <StatisticsTab events={events} />; // StatisticsTab uses all events
       case 'calendar':
-        return <CalendarTab events={events} />;
+        // CalendarTab now uses its own SidePanel as per previous modifications to CalendarTab.js
+        // It needs all events, not filtered ones.
+        // It needs onEventUpdate to save changes from its internal EventCard.
+        // onEventClick is passed to prevent App.js's main panel from opening due to a calendar click.
+        return (
+          <CalendarTab
+            events={events}
+            onEventUpdate={saveEvent}
+            onEventClick={(calendarClickedEvent) => {
+              // This callback is for the onEventClick prop in CalendarTab.
+              // Since CalendarTab is now designed to open its own panel,
+              // we do NOT want to call setActiveEvent(calendarClickedEvent) here,
+              // as that would trigger App.js's main SidePanel as well.
+              console.log('Event click from CalendarTab. Panel handled by CalendarTab. Event ID:', calendarClickedEvent.id);
+            }}
+          />
+        );
       default:
         return null;
     }
   };
 
-  // Export events to Excel functionality
   const handleExportConfirm = (filterOptions) => {
     exportEventsToExcel(events, filterOptions);
   };
 
-  // Auto-close side panel when changing tabs
   useEffect(() => {
-    setActiveEvent(null);
+    setActiveEvent(null); // Close App.js's main SidePanel when changing tabs
   }, [currentTab]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-center py-10">Loading application data...</div>;
   if (!user) return <AuthForm />;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-100">
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         onExport={() => setExportModalVisible(true)}
       />
 
-      {/* Main content area */}
-      <div className="flex-1 p-4 overflow-auto relative">
+      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto relative"> {/* Changed div to main for semantics */}
         {renderTab()}
-      </div>
+      </main>
 
-      {/* SidePanel integration */}
+      {/* SidePanel managed by App.js (for MaybeTab, UpcomingTab, FinishedTab clicks) */}
       {activeEvent && (
-        <div ref={sidePanelRef}>
-          <SidePanel 
-            isOpen={!!activeEvent} 
-            onClose={handleSidePanelClose}
+        <div ref={sidePanelRef}> {/* Ensure this div captures clicks for outside click detection */}
+          <SidePanel
+            isOpen={!!activeEvent}
+            onClose={handleSidePanelClose} // Use the refined handler
             title={activeEvent.eventName || 'Event Details'}
           >
-            {/* Event details rendered via EventCard */}
             <EventCard
-              ref={eventCardRef}
+              ref={eventCardRef} // Pass ref to EventCard
               event={activeEvent}
               onMoveLeft={handleMoveLeftEvent}
               onMoveRight={handleMoveRightEvent}
               onDelete={deleteEvent}
-              onSave={saveEvent}
-              setActiveEvent={setActiveEvent}
-              active={true}
-              hideActions={true}
+              onSave={saveEvent} // EventCard in App.js's panel uses saveEvent directly
+              setActiveEvent={setActiveEvent} // To allow EventCard to close App.js's panel
+              active={true} // This EventCard is active when SidePanel is open
+              hideActions={true} // Using external action panel in App.js
             />
-            {/* External action panel */}
+            {/* External action panel as previously designed in App.js */}
             <AnimatePresence>
-              {activeEvent && (
+              {activeEvent && ( // Re-check activeEvent for the motion component
                 <motion.div
                   initial={{ y: 100, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
                   transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-                  className="flex flex-col space-y-2 bg-white p-4 border-t mt-4"
+                  className="flex flex-col space-y-2 bg-white p-4 border-t mt-4" // Added sticky and bottom-0
                   style={{ width: '100%' }}
                 >
                   <button
-                    onClick={handleSidePanelClose}
+                    onClick={() => {
+                      if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+                         eventCardRef.current.handleClose(); // This will trigger save if dirty, then close.
+                      } else {
+                        // Fallback if ref not available, attempt save then close
+                        saveEvent(activeEvent); 
+                        setActiveEvent(null);
+                      }
+                    }}
                     className="bg-green-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-green-600 transition"
                   >
-                    Save
+                    Save & Close {/* Changed from just "Save" for clarity, as it also closes */}
                   </button>
-                  <button
-                    onClick={() => handleMoveRightEvent(activeEvent.id)}
-                    className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                  >
-                    Move Right &rarr;
-                  </button>
-                  <button
-                    onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                    className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                  >
-                    &larr; Move Left
-                  </button>
+                   {activeEvent.status !== 'finished' && ( // Conditionally show Move Right
+                    <button
+                      onClick={() => handleMoveRightEvent(activeEvent.id)}
+                      className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
+                    >
+                      Move Right &rarr;
+                    </button>
+                  )}
+                  {activeEvent.status !== 'maybe' && ( // Conditionally show Move Left
+                    <button
+                      onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                      className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
+                    >
+                      &larr; Move Left
+                    </button>
+                  )}
                   <button
                     onClick={() => deleteEvent(activeEvent.id)}
                     className="bg-red-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-red-600 transition"
                   >
                     Delete
                   </button>
-                  <button
-                    onClick={handleSidePanelClose}
-                    className="text-red-500 w-full text-sm underline"
+                  <button // A dedicated close without save, if user abandons changes (EventCard's internal close handles dirty check)
+                    onClick={handleSidePanelClose} 
+                    className="text-gray-700 w-full text-sm underline hover:text-black transition"
                   >
-                    Close
+                    Cancel / Close
                   </button>
                 </motion.div>
               )}

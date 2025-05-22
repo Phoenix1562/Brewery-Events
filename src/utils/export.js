@@ -9,18 +9,13 @@ const sortByDate = (arr) => {
   });
 };
 
-// Transforms an event into an object with specific fields.
-// includeMoney determines whether to include financial info.
-// The exported column order is now:
-// Client Name, Event Name, Event Date, Event Time, Building Area, Number of Guests,
-// (money fields, if applicable), and finally Notes.
+// Transforms an event into an object with specific fields for export.
 const formatEventForExport = (event, includeMoney) => {
-  // Combine start and end time if available.
   const eventTime = event.startTime
     ? event.endTime
       ? `${event.startTime} - ${event.endTime}`
       : event.startTime
-    : '';
+    : 'N/A';
 
   const base = {
     'Client Name': event.clientName || '',
@@ -28,119 +23,136 @@ const formatEventForExport = (event, includeMoney) => {
     'Event Date': event.eventDate ? new Date(event.eventDate) : '',
     'Event Time': eventTime,
     'Building Area': event.buildingArea || '',
-    'Number of Guests': event.numberOfGuests || ''
+    'Number of Guests': event.numberOfGuests || '',
+    'All Day': event.allDay ? 'Yes' : 'No',
+    'Form Sent': event.formSent ? 'Yes' : 'No',
+    'Form Received Date': event.formReceivedDate ? new Date(event.formReceivedDate) : '',
   };
 
   if (includeMoney) {
     base['Price Given'] = event.priceGiven || '';
     base['Down Payment Required'] = event.downPaymentRequired || '';
     base['Down Payment Received'] = event.downPaymentReceived ? 'Yes' : 'No';
-    base['Amount Paid After'] = event.amountPaidAfter || '';
+    base['Food/Beverage/Other Costs'] = event.amountPaidAfter || '';
     base['Grand Total'] = event.grandTotal || '';
     base['Security Deposit'] = event.securityDeposit || '';
   }
-
-  // Notes always at the end.
+  
+  base['Final Payment Received'] = event.finalPaymentReceived ? 'Yes' : 'No';
+  base['Final Payment Received Date'] = event.finalPaymentReceivedDate ? new Date(event.finalPaymentReceivedDate) : '';
   base['Notes'] = event.notes || '';
 
   return base;
 };
 
+// Helper function to filter events by date range
+const filterEventsByDateRange = (eventsToFilter, dateConfig) => {
+  if (!dateConfig.applyDateRange || (!dateConfig.startDate && !dateConfig.endDate)) {
+    return eventsToFilter; // No date filter to apply or toggle is off
+  }
+
+  return eventsToFilter.filter(event => {
+    if (!event.eventDate) return false; // Cannot filter if event has no date
+
+    const eventD = new Date(event.eventDate);
+    // Normalize to UTC midnight for date-only comparison
+    const eventDateOnly = new Date(Date.UTC(eventD.getUTCFullYear(), eventD.getUTCMonth(), eventD.getUTCDate()));
+
+    let SDate = null;
+    if (dateConfig.startDate) {
+      const [sYear, sMonth, sDay] = dateConfig.startDate.split('-').map(Number);
+      SDate = new Date(Date.UTC(sYear, sMonth - 1, sDay));
+    }
+
+    let EDate = null;
+    if (dateConfig.endDate) {
+      const [eYear, eMonth, eDay] = dateConfig.endDate.split('-').map(Number);
+      EDate = new Date(Date.UTC(eYear, eMonth - 1, eDay));
+    }
+
+    if (SDate && EDate) {
+      return eventDateOnly >= SDate && eventDateOnly <= EDate;
+    } else if (SDate) {
+      return eventDateOnly >= SDate;
+    } else if (EDate) {
+      return eventDateOnly <= EDate;
+    }
+    return true; // If applyDateRange is true but dates are blank, effectively no range constraint
+  });
+};
+
 /**
- * Exports events to an Excel file with three sheets (Pending, Upcoming, Finished).
- * The filterOptions parameter now includes reportType:
- *   - "internal": export includes money info
- *   - "external": export excludes money info
- *
- * @param {Array} events - Array of event objects.
- * @param {Object} filterOptions - { reportType: string, finished: { exclude: boolean, start: string, end: string } }
+ * Exports events to an Excel file with two sheets (Finished, Upcoming),
+ * each configured with its own filters.
+ * @param {Array} events - Array of all event objects.
+ * @param {Object} filterOptions - { reportType: string, configurations: { finished: object, upcoming: object } }
  */
 export const exportEventsToExcel = (events, filterOptions = {}) => {
   const includeMoney = filterOptions.reportType === 'internal';
+  const configs = filterOptions.configurations;
 
-  // Process Pending events: filter, sort, and format.
-  const pending = sortByDate(
-    events.filter(event => event.status === 'maybe')
-  ).map(e => formatEventForExport(e, includeMoney));
-
-  // Process Upcoming events: filter, sort, and format.
-  const upcoming = sortByDate(
-    events.filter(event => event.status === 'upcoming')
-  ).map(e => formatEventForExport(e, includeMoney));
-
-  // Process Finished events with optional filtering, then sort and format.
-  let finishedEvents = events.filter(event => event.status === 'finished');
-  const finishedFilter = filterOptions.finished || {};
-  if (finishedFilter.exclude) {
-    finishedEvents = [];
-  } else if (finishedFilter.start || finishedFilter.end) {
-    finishedEvents = finishedEvents.filter(event => {
-      if (!event.eventDate) return false;
-      const eventDate = new Date(event.eventDate);
-      let valid = true;
-      if (finishedFilter.start) {
-        const [startYear, startMonth] = finishedFilter.start.split('-');
-        const startDate = new Date(parseInt(startYear, 10), parseInt(startMonth, 10) - 1, 1);
-        valid = valid && eventDate >= startDate;
-      }
-      if (finishedFilter.end) {
-        const [endYear, endMonth] = finishedFilter.end.split('-');
-        const endDate = new Date(parseInt(endYear, 10), parseInt(endMonth, 10), 0);
-        valid = valid && eventDate <= endDate;
-      }
-      return valid;
-    });
+  if (!configs || !configs.finished || !configs.upcoming) {
+    console.error("Export configurations for finished and upcoming events are missing.");
+    alert("Export error: Configuration missing.");
+    return;
   }
-  const finished = sortByDate(finishedEvents).map(e => formatEventForExport(e, includeMoney));
+
+  // --- Process Finished Events ---
+  const finishedConfig = configs.finished;
+  let finishedRawEvents = events.filter(event => event.status === 'finished');
+  let finishedFilteredByDate = filterEventsByDateRange(finishedRawEvents, finishedConfig);
+  const processedFinishedEvents = sortByDate(finishedFilteredByDate)
+    .map(e => formatEventForExport(e, includeMoney));
+
+  // --- Process Upcoming Events ---
+  const upcomingConfig = configs.upcoming;
+  let upcomingRawEvents = events.filter(event => event.status === 'upcoming');
+  // Also consider 'maybe' status for upcoming if that's intended
+  // let upcomingRawEvents = events.filter(event => event.status === 'upcoming' || event.status === 'maybe');
+  let upcomingFilteredByDate = filterEventsByDateRange(upcomingRawEvents, upcomingConfig);
+  const processedUpcomingEvents = sortByDate(upcomingFilteredByDate)
+    .map(e => formatEventForExport(e, includeMoney));
 
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
 
   // Helper function to add a sheet to the workbook.
-  const addSheet = (data, sheetName) => {
-    if (!data.length) return; // Skip if there is no data
-    const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: false });
-    
-    // Set column widths based on whether money info is included.
-    let cols;
-    if (includeMoney) {
-      cols = [
-        { wch: 20 }, // Client Name
-        { wch: 20 }, // Event Name
-        { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
-        { wch: 15 }, // Event Time
-        { wch: 15 }, // Building Area
-        { wch: 15 }, // Number of Guests
-        { wch: 15 }, // Price Given
-        { wch: 20 }, // Down Payment Required
-        { wch: 20 }, // Down Payment Received
-        { wch: 15 }, // Amount Paid After
-        { wch: 15 }, // Grand Total
-        { wch: 15 }, // Security Deposit
-        { wch: 30 }  // Notes
-      ];
-    } else {
-      cols = [
-        { wch: 20 }, // Client Name
-        { wch: 20 }, // Event Name
-        { wch: 15, z: 'yyyy-mm-dd' }, // Event Date
-        { wch: 15 }, // Event Time
-        { wch: 15 }, // Building Area
-        { wch: 15 }, // Number of Guests
-        { wch: 30 }  // Notes
-      ];
+  const addSheet = (data, sheetTitle) => {
+    if (!data || data.length === 0) {
+      const noDataMessage = [{ Message: `No events found for ${sheetTitle} with the selected filters.` }];
+      const ws = XLSX.utils.json_to_sheet(noDataMessage);
+      XLSX.utils.book_append_sheet(workbook, ws, sheetTitle.substring(0, 30));
+      return;
     }
+    
+    const headersOrder = Object.keys(data[0]);
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headersOrder, skipHeader: false });
+    
+    const cols = headersOrder.map(header => {
+        switch(header) {
+            case 'Client Name': case 'Event Name': return { wch: 25 };
+            case 'Event Date': case 'Form Received Date': case 'Final Payment Received Date': return { wch: 15, z: 'mm-dd-yyyy' };
+            case 'Event Time': return { wch: 18 };
+            case 'Notes': return { wch: 40 };
+            case 'Building Area': case 'Number of Guests': case 'Price Given':
+            case 'Food/Beverage/Other Costs': case 'Grand Total': case 'Security Deposit': return { wch: 18 };
+            case 'Down Payment Required': return { wch: 22 };
+            case 'All Day': case 'Form Sent': case 'Down Payment Received': case 'Final Payment Received': return { wch: 12 };
+            default: return { wch: 15 };
+        }
+    });
     worksheet['!cols'] = cols;
     
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetTitle.substring(0, 30));
   };
 
-  addSheet(pending, "Pending");
-  addSheet(upcoming, "Upcoming");
-  addSheet(finished, "Finished");
+  // Add both sheets to the workbook
+  addSheet(processedFinishedEvents, "Finished Events");
+  addSheet(processedUpcomingEvents, "Upcoming Events");
 
-  // Generate a filename that includes the report type and the current date.
+  // Generate a filename
   const dateStr = new Date().toISOString().split('T')[0];
-  const fileName = `Events_Export_${filterOptions.reportType}_${dateStr}.xlsx`;
+  // Filename can be more generic since it contains multiple sheets now
+  const fileName = `Event_Report_${filterOptions.reportType}_${dateStr}.xlsx`;
   XLSX.writeFile(workbook, fileName);
 };

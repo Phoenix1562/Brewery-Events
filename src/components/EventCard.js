@@ -11,8 +11,10 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, ...
         value={value}
         placeholder={placeholder}
         onChange={onChange}
-        disabled={disabled}
-        className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        disabled={disabled} // Standard HTML disabled attribute
+        className={`border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+          disabled ? 'bg-gray-100 cursor-not-allowed' : '' // Optional: explicit styling for disabled state
+        }`}
         {...rest}
       />
     </div>
@@ -28,7 +30,7 @@ function EventCard(props, ref) {
     onSave,
     active,
     setActiveEvent,
-    hideActions = false, // if true, internal action buttons are not rendered
+    hideActions = false,
   } = props;
   
   const [localEvent, setLocalEvent] = useState(event);
@@ -81,8 +83,11 @@ function EventCard(props, ref) {
           files: localEvent.files.filter((_, i) => i !== index),
         };
         setLocalEvent(updatedEvent);
-        if (onSave) await onSave(updatedEvent);
-        setIsDirty(false);
+        if (onSave) {
+             await onSave(updatedEvent);
+        } else {
+            setIsDirty(true);
+        }
       } catch (err) {
         console.error('Failed to delete file', err);
         alert('Failed to delete file: ' + file.name);
@@ -180,27 +185,27 @@ function EventCard(props, ref) {
           <LabeledInput
             label="Client Name"
             type="text"
-            value={localEvent.clientName}
+            value={localEvent.clientName || ''}
             onChange={(e) => handleChange('clientName', e.target.value)}
             placeholder="Enter client name"
           />
           <LabeledInput
             label="Event Name"
             type="text"
-            value={localEvent.eventName}
+            value={localEvent.eventName || ''}
             onChange={(e) => handleChange('eventName', e.target.value)}
             placeholder="Enter event name"
           />
           <LabeledInput
             label="Event Date"
             type="date"
-            value={localEvent.eventDate}
+            value={localEvent.eventDate || ''}
             onChange={(e) => handleChange('eventDate', e.target.value)}
           />
           <div className="flex flex-col">
             <label className="mb-1 text-sm font-semibold text-gray-700">Building Area</label>
             <select
-              value={localEvent.buildingArea}
+              value={localEvent.buildingArea || ''}
               onChange={(e) => handleChange('buildingArea', e.target.value)}
               className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
@@ -224,23 +229,15 @@ function EventCard(props, ref) {
             onChange={(e) => handleChange('endTime', e.target.value)}
             disabled={localEvent.allDay}
           />
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-auto mb-2">
             <input
               type="checkbox"
+              id={`allDay-${localEvent.id}`}
               checked={localEvent.allDay || false}
               onChange={(e) => handleChange('allDay', e.target.checked)}
               className="h-4 w-4"
             />
-            <label className="text-sm">All Day</label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={localEvent.formSent || false}
-              onChange={(e) => handleChange('formSent', e.target.checked)}
-              className="h-4 w-4"
-            />
-            <label className="text-sm">Form Sent</label>
+            <label htmlFor={`allDay-${localEvent.id}`} className="text-sm">All Day</label>
           </div>
           <LabeledInput
             label="Number of Guests"
@@ -248,6 +245,23 @@ function EventCard(props, ref) {
             value={localEvent.numberOfGuests || ''}
             onChange={(e) => handleChange('numberOfGuests', e.target.value)}
             placeholder="0"
+          />
+          <div className="flex items-center space-x-2 mt-auto mb-2">
+            <input
+              type="checkbox"
+              id={`formSent-${localEvent.id}`}
+              checked={localEvent.formSent || false}
+              onChange={(e) => handleChange('formSent', e.target.checked)}
+              className="h-4 w-4"
+            />
+            <label htmlFor={`formSent-${localEvent.id}`} className="text-sm">Form Sent</label>
+          </div>
+          <LabeledInput
+            label="Form Received Date"
+            type="date"
+            value={localEvent.formReceivedDate || ''}
+            onChange={(e) => handleChange('formReceivedDate', e.target.value)}
+            disabled={!localEvent.formSent} // Conditionally disable
           />
         </div>
       </section>
@@ -257,65 +271,75 @@ function EventCard(props, ref) {
           <LabeledInput
             label="Price Given"
             type="number"
-            value={localEvent.priceGiven}
+            value={localEvent.priceGiven || ''}
             onChange={(e) => handleChange('priceGiven', e.target.value)}
             placeholder="0.00"
           />
           <LabeledInput
             label="Down Payment Required"
             type="number"
-            value={localEvent.downPaymentRequired}
+            value={localEvent.downPaymentRequired || ''}
             onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
             placeholder="0.00"
           />
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-auto mb-2">
             <input
               type="checkbox"
-              checked={localEvent.downPaymentReceived}
+              id={`downPaymentReceived-${localEvent.id}`}
+              checked={localEvent.downPaymentReceived || false}
               onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
               className="h-4 w-4"
             />
-            <label className="text-sm">Down Payment Received</label>
+            <label htmlFor={`downPaymentReceived-${localEvent.id}`} className="text-sm">Down Payment Received</label>
           </div>
           <LabeledInput
             label="Food/Beverage Cost"
             type="number"
-            value={localEvent.amountPaidAfter}
+            value={localEvent.amountPaidAfter || ''}
             onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
             placeholder="0.00"
           />
           <LabeledInput
             label="Grand Total"
             type="number"
-            value={localEvent.grandTotal}
+            value={localEvent.grandTotal || ''}
             onChange={(e) => handleChange('grandTotal', e.target.value)}
             placeholder="0.00"
           />
           <LabeledInput
             label="Security Deposit"
             type="number"
-            value={localEvent.securityDeposit}
+            value={localEvent.securityDeposit || ''}
             onChange={(e) => handleChange('securityDeposit', e.target.value)}
             placeholder="0.00"
           />
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-semibold">Final Payment Received</label>
+          <div className="flex items-center space-x-2 mt-auto mb-2">
             <input
               type="checkbox"
+              id={`finalPaymentReceived-${localEvent.id}`}
               checked={localEvent.finalPaymentReceived || false}
               onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
               className="h-4 w-4"
             />
+            <label htmlFor={`finalPaymentReceived-${localEvent.id}`} className="text-sm">Final Payment Received</label>
           </div>
+          <LabeledInput
+            label="Final Payment Received Date"
+            type="date"
+            value={localEvent.finalPaymentReceivedDate || ''}
+            onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
+            disabled={!localEvent.finalPaymentReceived} // Conditionally disable
+          />
         </div>
       </section>
       <section className="mb-6">
         <h3 className="text-lg font-bold mb-3 border-b pb-1">Attachments &amp; Notes</h3>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
+          <label htmlFor={`notes-${localEvent.id}`} className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
           <textarea
+            id={`notes-${localEvent.id}`}
             placeholder="Add additional details..."
-            value={localEvent.notes}
+            value={localEvent.notes || ''}
             onChange={(e) => handleChange('notes', e.target.value)}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             rows="3"
@@ -325,26 +349,26 @@ function EventCard(props, ref) {
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
           <input
             type="file"
-            accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             onChange={handleFileUpload}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             multiple
           />
           {localEvent.files && localEvent.files.length > 0 && (
-            <ul className="list-disc list-inside text-sm mt-2">
+            <ul className="list-disc list-inside text-sm mt-2 space-y-1">
               {localEvent.files.map((file, index) => (
-                <li key={index} className="flex items-center justify-between">
+                <li key={index} className="flex items-center justify-between group">
                   <a
                     href={file.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                    title={file.name}
                   >
                     {file.name}
                   </a>
                   <button
                     onClick={() => handleDeleteFile(file, index)}
-                    className="text-red-500 text-sm ml-2 hover:underline"
+                    className="text-red-500 text-xs ml-2 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Delete this file"
                   >
                     Delete
