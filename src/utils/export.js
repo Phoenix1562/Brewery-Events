@@ -20,19 +20,19 @@ const formatEventForExport = (event, includeMoney) => {
   const base = {
     'Client Name': event.clientName || '',
     'Event Name': event.eventName || '',
-    'Event Date': event.eventDate ? new Date(event.eventDate) : '',
+    'Event Date': event.eventDate ? new Date(event.eventDate) : '', 
     'Event Time': eventTime,
     'Building Area': event.buildingArea || '',
     'Number of Guests': event.numberOfGuests || '',
     'All Day': event.allDay ? 'Yes' : 'No',
-    'Form Sent': event.formSent ? 'Yes' : 'No',
-    'Form Received Date': event.formReceivedDate ? new Date(event.formReceivedDate) : '',
+    // "Form Sent" and "Form Received Date" are removed as per your request
   };
 
   if (includeMoney) {
     base['Price Given'] = event.priceGiven || '';
     base['Down Payment Required'] = event.downPaymentRequired || '';
     base['Down Payment Received'] = event.downPaymentReceived ? 'Yes' : 'No';
+    base['Down Payment Received Date'] = event.downPaymentReceivedDate ? new Date(event.downPaymentReceivedDate) : ''; // Kept
     base['Food/Beverage/Other Costs'] = event.amountPaidAfter || '';
     base['Grand Total'] = event.grandTotal || '';
     base['Security Deposit'] = event.securityDeposit || '';
@@ -47,15 +47,15 @@ const formatEventForExport = (event, includeMoney) => {
 
 // Helper function to filter events by date range
 const filterEventsByDateRange = (eventsToFilter, dateConfig) => {
-  if (!dateConfig.applyDateRange || (!dateConfig.startDate && !dateConfig.endDate)) {
-    return eventsToFilter; // No date filter to apply or toggle is off
+  // If applyDateRange is false (or not present), or no dates are set, return all events for that status
+  if (!dateConfig || !dateConfig.applyDateRange || (!dateConfig.startDate && !dateConfig.endDate)) {
+    return eventsToFilter;
   }
 
   return eventsToFilter.filter(event => {
-    if (!event.eventDate) return false; // Cannot filter if event has no date
+    if (!event.eventDate) return false; 
 
     const eventD = new Date(event.eventDate);
-    // Normalize to UTC midnight for date-only comparison
     const eventDateOnly = new Date(Date.UTC(eventD.getUTCFullYear(), eventD.getUTCMonth(), eventD.getUTCDate()));
 
     let SDate = null;
@@ -77,82 +77,101 @@ const filterEventsByDateRange = (eventsToFilter, dateConfig) => {
     } else if (EDate) {
       return eventDateOnly <= EDate;
     }
-    return true; // If applyDateRange is true but dates are blank, effectively no range constraint
+    // If applyDateRange is true but specific dates are blank, it implies an open range for that end.
+    // The function currently returns all if BOTH are blank and applyDateRange is true due to the top check.
+    // If only one is blank, the single-ended range comparison above handles it.
+    return true; 
   });
 };
 
 /**
- * Exports events to an Excel file with two sheets (Finished, Upcoming),
- * each configured with its own filters.
+ * Exports events to an Excel file with sheets based on selection.
  * @param {Array} events - Array of all event objects.
- * @param {Object} filterOptions - { reportType: string, configurations: { finished: object, upcoming: object } }
+ * @param {Object} filterOptions - { reportType: string, exportSheets: { finished: boolean, upcoming: boolean }, configurations: { finished: object, upcoming: object } }
  */
 export const exportEventsToExcel = (events, filterOptions = {}) => {
   const includeMoney = filterOptions.reportType === 'internal';
+  const exportSheetsConfig = filterOptions.exportSheets;
   const configs = filterOptions.configurations;
 
-  if (!configs || !configs.finished || !configs.upcoming) {
-    console.error("Export configurations for finished and upcoming events are missing.");
-    alert("Export error: Configuration missing.");
+  if (!exportSheetsConfig || !configs || !configs.finished || !configs.upcoming) {
+    console.error("Export configurations or sheet selection is missing.");
+    alert("Export error: Configuration or sheet selection missing.");
     return;
   }
 
-  // --- Process Finished Events ---
-  const finishedConfig = configs.finished;
-  let finishedRawEvents = events.filter(event => event.status === 'finished');
-  let finishedFilteredByDate = filterEventsByDateRange(finishedRawEvents, finishedConfig);
-  const processedFinishedEvents = sortByDate(finishedFilteredByDate)
-    .map(e => formatEventForExport(e, includeMoney));
-
-  // --- Process Upcoming Events ---
-  const upcomingConfig = configs.upcoming;
-  let upcomingRawEvents = events.filter(event => event.status === 'upcoming');
-  // Also consider 'maybe' status for upcoming if that's intended
-  // let upcomingRawEvents = events.filter(event => event.status === 'upcoming' || event.status === 'maybe');
-  let upcomingFilteredByDate = filterEventsByDateRange(upcomingRawEvents, upcomingConfig);
-  const processedUpcomingEvents = sortByDate(upcomingFilteredByDate)
-    .map(e => formatEventForExport(e, includeMoney));
-
-  // Create a new workbook
   const workbook = XLSX.utils.book_new();
+  let sheetsAdded = 0;
 
   // Helper function to add a sheet to the workbook.
   const addSheet = (data, sheetTitle) => {
     if (!data || data.length === 0) {
       const noDataMessage = [{ Message: `No events found for ${sheetTitle} with the selected filters.` }];
       const ws = XLSX.utils.json_to_sheet(noDataMessage);
-      XLSX.utils.book_append_sheet(workbook, ws, sheetTitle.substring(0, 30));
+      XLSX.utils.book_append_sheet(workbook, ws, sheetTitle.substring(0, 30)); // Sheet names max 31 chars
+      sheetsAdded++;
       return;
     }
     
     const headersOrder = Object.keys(data[0]);
-    const worksheet = XLSX.utils.json_to_sheet(data, { header: headersOrder, skipHeader: false });
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headersOrder, skipHeader: false, dateNF: 'mm-dd-yyyy' }); // Ensure dates are written as dates
     
     const cols = headersOrder.map(header => {
         switch(header) {
             case 'Client Name': case 'Event Name': return { wch: 25 };
-            case 'Event Date': case 'Form Received Date': case 'Final Payment Received Date': return { wch: 15, z: 'mm-dd-yyyy' };
+            case 'Event Date': 
+            // "Form Received Date" was removed
+            case 'Down Payment Received Date': // Kept
+            case 'Final Payment Received Date': 
+                return { wch: 15, z: 'mm-dd-yyyy' }; // Excel date format
             case 'Event Time': return { wch: 18 };
             case 'Notes': return { wch: 40 };
             case 'Building Area': case 'Number of Guests': case 'Price Given':
             case 'Food/Beverage/Other Costs': case 'Grand Total': case 'Security Deposit': return { wch: 18 };
             case 'Down Payment Required': return { wch: 22 };
-            case 'All Day': case 'Form Sent': case 'Down Payment Received': case 'Final Payment Received': return { wch: 12 };
-            default: return { wch: 15 };
+            case 'All Day': 
+            // "Form Sent" was removed
+            case 'Down Payment Received': 
+            case 'Final Payment Received': 
+                return { wch: 12 }; // For Yes/No fields
+            default: return { wch: 15 }; // Default width
         }
     });
     worksheet['!cols'] = cols;
     
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetTitle.substring(0, 30));
+    sheetsAdded++;
   };
+  
+  // Process and add "Finished Events" sheet if selected
+  if (exportSheetsConfig.finished) {
+    const finishedConfig = configs.finished;
+    let finishedRawEvents = events.filter(event => event.status === 'finished');
+    let finishedFilteredByDate = filterEventsByDateRange(finishedRawEvents, finishedConfig);
+    const processedFinishedEvents = sortByDate(finishedFilteredByDate)
+      .map(e => formatEventForExport(e, includeMoney));
+    addSheet(processedFinishedEvents, "Finished Events");
+  }
 
-  // Add both sheets to the workbook
-  addSheet(processedFinishedEvents, "Finished Events");
-  addSheet(processedUpcomingEvents, "Upcoming Events");
+  // Process and add "Upcoming Events" sheet if selected
+  if (exportSheetsConfig.upcoming) {
+    const upcomingConfig = configs.upcoming;
+    // Decide if 'maybe' status should be included with 'upcoming' or be its own category
+    let upcomingRawEvents = events.filter(event => event.status === 'upcoming' /* || event.status === 'maybe' */);
+    let upcomingFilteredByDate = filterEventsByDateRange(upcomingRawEvents, upcomingConfig);
+    const processedUpcomingEvents = sortByDate(upcomingFilteredByDate)
+      .map(e => formatEventForExport(e, includeMoney));
+    addSheet(processedUpcomingEvents, "Upcoming Events");
+  }
+  
+  // If no sheets were added (e.g., both toggles off, or data was empty for selected toggles)
+  if (sheetsAdded === 0) {
+    alert("No data to export based on your selections. Please check your filters or sheet inclusion toggles.");
+    return;
+  }
 
   // Generate a filename
   const dateStr = new Date().toISOString().split('T')[0];
-  // Filename can be more generic since it contains multiple sheets now
   const fileName = `Event_Report_${filterOptions.reportType}_${dateStr}.xlsx`;
   XLSX.writeFile(workbook, fileName);
 };

@@ -106,21 +106,33 @@ function App() {
   };
 
   const saveEvent = async (updatedEvent) => {
-    try {
-      const { id, ...fields } = updatedEvent; // Ensure id is extracted and not part of fields to update
-      await updateDoc(doc(db, "events", id), fields);
-      setEvents(prev => prev.map(event => (event.id === id ? updatedEvent : event)));
-      // If the updated event was the one in App.js's side panel, update activeEvent
-      // This is important if CalendarTab's EventCard saves an event that might also be open in App's panel.
-      // However, CalendarTab is intended to have its own panel, so this specific line might be more relevant
-      // for events edited through App.js's main panel.
-      if (activeEvent && activeEvent.id === id) {
-        setActiveEvent(updatedEvent);
-      }
-    } catch (err) {
-      console.error("Error saving event:", err);
+  try {
+    const { id, ...fields } = updatedEvent;
+    if (!id) {
+      // It's good practice to ensure an ID exists before trying to update a document
+      console.error("Event ID is missing in updatedEvent, cannot save.", updatedEvent);
+      throw new Error("Cannot save event without an ID."); // Or handle more gracefully
     }
-  };
+    await updateDoc(doc(db, "events", id), fields);
+    setEvents(prevEvents => prevEvents.map(e => (e.id === id ? updatedEvent : e)));
+
+    // REMOVE or COMMENT OUT THIS BLOCK:
+    /*
+    if (activeEvent && activeEvent.id === id) {
+      setActiveEvent(updatedEvent); 
+    }
+    */
+   // The EventCard will reflect the new data if it were to remain open due to a different action.
+   // If closing, EventCard's setActiveEvent(null) will handle closing.
+   // The main 'events' list is updated, so re-opening the event later will show fresh data.
+
+  } catch (err) {
+    console.error("Error saving event:", err);
+    // You might want to throw the error or set an error state to inform the user
+    // For example: setSaveError("Failed to save event. Please try again.");
+  }
+};
+
 
   const moveEvent = async (id, newStatus) => {
     const eventToUpdate = events.find(event => event.id === id);
