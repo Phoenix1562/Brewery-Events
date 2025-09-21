@@ -18,13 +18,13 @@ const formatCurrency = (value, options = {}) => {
 const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTH_NAMES_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-const getFormattedMonthYear = (key) => {
+function getFormattedMonthYear(key) {
     if (!key) return '';
     const [year, month] = key.split('-');
     const monthIndex = parseInt(month, 10) - 1;
     const monthName = MONTH_NAMES_FULL[monthIndex] || MONTH_NAMES_FULL[0];
     return `${monthName} ${year}`;
-};
+}
 
 // KPICard Component
 const KPICard = ({ title, value, icon, trend, trendDirection, unit, isLoading }) => (
