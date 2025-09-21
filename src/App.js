@@ -282,59 +282,65 @@ function App() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
                   transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-                  className="flex flex-col space-y-2 bg-white p-4 border-t mt-4" // Added sticky and bottom-0
+                  className="mt-6 rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
                   style={{ width: '100%' }}
                 >
-                  <button
-                    onClick={() => {
-                      if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-                         eventCardRef.current.handleClose(); // This will trigger save if dirty, then close.
-                      } else {
-                        // Fallback if ref not available, attempt save then close
-                        saveEvent(activeEvent); 
-                        setActiveEvent(null);
-                      }
-                    }}
-                    className="bg-green-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-green-600 transition"
-                  >
-                    Save & Close {/* Changed from just "Save" for clarity, as it also closes */}
-                  </button>
-                   {activeEvent.status !== 'finished' && ( // Conditionally show Move Right
-                    <button
-                      onClick={() => handleMoveRightEvent(activeEvent.id)}
-                      className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                    >
-                      {activeEvent.status === 'maybe'
-                        ? 'Move to Upcoming Events →'
-                        : activeEvent.status === 'upcoming'
-                          ? 'Move to Finished Events →'
-                          : 'Move Right →'}
-                    </button>
-                  )}
-                  {activeEvent.status !== 'maybe' && ( // Conditionally show Move Left
-                    <button
-                      onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                      className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
-                    >
-                      {activeEvent.status === 'upcoming'
-                        ? '← Move to Pending Events'
-                        : activeEvent.status === 'finished'
-                          ? '← Move to Upcoming Events'
-                          : '← Move Left'}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => deleteEvent(activeEvent.id)}
-                    className="bg-red-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-red-600 transition"
-                  >
-                    Delete
-                  </button>
-                  <button // A dedicated close without save, if user abandons changes (EventCard's internal close handles dirty check)
-                    onClick={handleSidePanelClose} 
-                    className="text-gray-700 w-full text-sm underline hover:text-black transition"
-                  >
-                    Cancel / Close
-                  </button>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+                            eventCardRef.current.handleClose();
+                          } else {
+                            saveEvent(activeEvent);
+                            setActiveEvent(null);
+                          }
+                        }}
+                        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-600"
+                      >
+                        Save & Close
+                      </button>
+                      {activeEvent.status !== 'finished' && (
+                        <button
+                          onClick={() => handleMoveRightEvent(activeEvent.id)}
+                          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+                        >
+                          {activeEvent.status === 'maybe'
+                            ? 'Move to Upcoming Events →'
+                            : activeEvent.status === 'upcoming'
+                              ? 'Move to Finished Events →'
+                              : 'Move Right →'}
+                        </button>
+                      )}
+                      {activeEvent.status !== 'maybe' && (
+                        <button
+                          onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                          className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                        >
+                          {activeEvent.status === 'upcoming'
+                            ? '← Move to Pending Events'
+                            : activeEvent.status === 'finished'
+                              ? '← Move to Upcoming Events'
+                              : '← Move Left'}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => deleteEvent(activeEvent.id)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={handleSidePanelClose}
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
+                      >
+                        Cancel / Close
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

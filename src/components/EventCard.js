@@ -7,8 +7,8 @@ import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign
 function LabeledInput({ label, type, value, onChange, placeholder, disabled, id, icon, ...rest }) {
   return (
     <div className="flex flex-col">
-      <label htmlFor={id} className="mb-1.5 text-sm font-medium text-gray-600 flex items-center">
-        {icon && React.cloneElement(icon, { size: 14, className: "mr-2 text-gray-400" })}
+      <label htmlFor={id} className="mb-2 text-sm font-semibold text-gray-700 flex items-center">
+        {icon && React.cloneElement(icon, { size: 14, className: 'mr-2 text-gray-400' })}
         {label}
       </label>
       <input
@@ -18,34 +18,57 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, id,
         placeholder={placeholder}
         onChange={onChange}
         disabled={disabled}
-        className={`border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                    transition-colors duration-150 ease-in-out ${
-          disabled ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white hover:border-gray-400'
-        }`}
+        className={`w-full rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition-colors duration-150 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white
+          ${disabled ? 'bg-gray-100 cursor-not-allowed text-gray-500 border-gray-200' : 'hover:border-gray-300'}`}
         {...rest}
       />
     </div>
   );
 }
 
-// CheckboxInput component (remains the same)
-function CheckboxInput({ label, checked, onChange, id, disabled, className }) {
-    return (
-        <div className={`flex items-center ${className}`}>
-            <input
-                type="checkbox"
-                id={id}
-                checked={checked}
-                onChange={onChange}
-                disabled={disabled}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:bg-gray-100 disabled:border-gray-200 disabled:cursor-not-allowed"
-            />
-            <label htmlFor={id} className={`ml-2 text-sm ${disabled ? 'text-gray-400' : 'text-gray-700'} select-none`}>
-                {label}
-            </label>
-        </div>
-    );
+// ToggleInput component
+function ToggleInput({ label, checked, onChange, id, disabled, description, className = '' }) {
+  return (
+    <label
+      htmlFor={id}
+      aria-disabled={disabled}
+      className={`group flex w-full items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white/70 p-4 shadow-sm transition ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-200'
+      } ${className}`}
+    >
+      <div className="min-w-0">
+        <p className={`text-sm font-semibold ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{label}</p>
+        {description && (
+          <p className="mt-1 text-xs text-gray-500">
+            {description}
+          </p>
+        )}
+      </div>
+      <div
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center justify-center rounded-full transition ${
+          disabled ? 'cursor-not-allowed' : 'cursor-pointer group-hover:scale-[1.02]'
+        }`}
+      >
+        <input
+          type="checkbox"
+          id={id}
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+          className="peer sr-only"
+        />
+        <span
+          className="absolute h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-blue-500 peer-focus:ring-4 peer-focus:ring-blue-200"
+          aria-hidden="true"
+        ></span>
+        <span
+          className="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5"
+          aria-hidden="true"
+        ></span>
+      </div>
+    </label>
+  );
 }
 
 function EventCard(props, ref) {
@@ -54,7 +77,7 @@ function EventCard(props, ref) {
     onSave,
     setActiveEvent,
   } = props;
-  
+
   const [localEvent, setLocalEvent] = useState(event || {});
   const [isDirty, setIsDirty] = useState(false);
   const notesTextareaRef = useRef(null); // Ref for the notes textarea
@@ -62,26 +85,26 @@ function EventCard(props, ref) {
   useEffect(() => {
     const initialEvent = event || {};
     setLocalEvent({
-        clientName: initialEvent.clientName || '',
-        eventName: initialEvent.eventName || '',
-        eventDate: initialEvent.eventDate || '',
-        buildingArea: initialEvent.buildingArea || '',
-        startTime: initialEvent.startTime || '',
-        endTime: initialEvent.endTime || '',
-        allDay: initialEvent.allDay || false,
-        numberOfGuests: initialEvent.numberOfGuests || '',
-        priceGiven: initialEvent.priceGiven || '',
-        downPaymentRequired: initialEvent.downPaymentRequired || '',
-        downPaymentReceived: initialEvent.downPaymentReceived || false,
-        downPaymentReceivedDate: initialEvent.downPaymentReceivedDate || '',
-        amountPaidAfter: initialEvent.amountPaidAfter || '',
-        grandTotal: initialEvent.grandTotal || '',
-        securityDeposit: initialEvent.securityDeposit || '',
-        finalPaymentReceived: initialEvent.finalPaymentReceived || false,
-        finalPaymentReceivedDate: initialEvent.finalPaymentReceivedDate || '',
-        notes: initialEvent.notes || '',
-        files: Array.isArray(initialEvent.files) ? initialEvent.files : [],
-        ...initialEvent,
+      clientName: initialEvent.clientName || '',
+      eventName: initialEvent.eventName || '',
+      eventDate: initialEvent.eventDate || '',
+      buildingArea: initialEvent.buildingArea || '',
+      startTime: initialEvent.startTime || '',
+      endTime: initialEvent.endTime || '',
+      allDay: initialEvent.allDay || false,
+      numberOfGuests: initialEvent.numberOfGuests || '',
+      priceGiven: initialEvent.priceGiven || '',
+      downPaymentRequired: initialEvent.downPaymentRequired || '',
+      downPaymentReceived: initialEvent.downPaymentReceived || false,
+      downPaymentReceivedDate: initialEvent.downPaymentReceivedDate || '',
+      amountPaidAfter: initialEvent.amountPaidAfter || '',
+      grandTotal: initialEvent.grandTotal || '',
+      securityDeposit: initialEvent.securityDeposit || '',
+      finalPaymentReceived: initialEvent.finalPaymentReceived || false,
+      finalPaymentReceivedDate: initialEvent.finalPaymentReceivedDate || '',
+      notes: initialEvent.notes || '',
+      files: Array.isArray(initialEvent.files) ? initialEvent.files : [],
+      ...initialEvent,
     });
     setIsDirty(false);
   }, [event]);
@@ -172,24 +195,30 @@ function EventCard(props, ref) {
       if (isDirty) {
         internalSave();
       } else {
-        console.log("No changes to save.");
+        console.log('No changes to save.');
       }
     },
     isDirty: () => isDirty,
   }));
-  
+
   const currentEvent = localEvent || {};
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-8">
-      {/* Event Details Section */}
-      <section>
-        <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b border-gray-200 pb-2 flex items-center">
-            <Info size={20} className="mr-2 text-blue-600"/> Event Details
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-          {/* ... other LabeledInput and CheckboxInput fields ... */}
+    <div className="space-y-6">
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
+        <header className="mb-5 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+            <Info size={20} />
+          </span>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Event Details</h3>
+            <p className="text-sm text-gray-500">
+              Key information about when and where the event takes place.
+            </p>
+          </div>
+        </header>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
           <LabeledInput
             id={`clientName-${eventId}`}
             label="Client Name"
@@ -215,12 +244,17 @@ function EventCard(props, ref) {
             onChange={(e) => handleChange('eventDate', e.target.value)}
           />
           <div>
-            <label htmlFor={`buildingArea-${eventId}`} className="mb-1.5 block text-sm font-medium text-gray-600">Building Area</label>
+            <label
+              htmlFor={`buildingArea-${eventId}`}
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
+              Building Area
+            </label>
             <select
               id={`buildingArea-${eventId}`}
               value={currentEvent.buildingArea || ''}
               onChange={(e) => handleChange('buildingArea', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300"
             >
               <option value="">Select venue</option>
               <option value="Brewhouse">Brewhouse</option>
@@ -246,12 +280,13 @@ function EventCard(props, ref) {
             onChange={(e) => handleChange('endTime', e.target.value)}
             disabled={currentEvent.allDay || false}
           />
-          <CheckboxInput
+          <ToggleInput
             id={`allDay-${eventId}`}
-            label="All Day Event"
+            label="All-day event"
             checked={currentEvent.allDay || false}
             onChange={(e) => handleChange('allDay', e.target.checked)}
-            className="md:mt-7" 
+            description="Blocks out start and end times for the full day."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`numberOfGuests-${eventId}`}
@@ -266,20 +301,28 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      {/* Payment Details Section */}
-      <section>
-        <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b border-gray-200 pb-2 flex items-center">
-            <DollarSign size={20} className="mr-2 text-green-600"/> Payment Details
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-         {/* ... other payment fields ... */}
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
+        <header className="mb-5 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <DollarSign size={20} />
+          </span>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Payment Details</h3>
+            <p className="text-sm text-gray-500">
+              Track invoices, deposits, and outstanding balances at a glance.
+            </p>
+          </div>
+        </header>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
           <LabeledInput
             id={`priceGiven-${eventId}`}
             label="Price Given ($)"
             type="number"
             value={currentEvent.priceGiven || ''}
             onChange={(e) => handleChange('priceGiven', e.target.value)}
-            placeholder="0.00" min="0" step="0.01"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
           />
           <LabeledInput
             id={`downPaymentRequired-${eventId}`}
@@ -287,14 +330,17 @@ function EventCard(props, ref) {
             type="number"
             value={currentEvent.downPaymentRequired || ''}
             onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
-            placeholder="0.00" min="0" step="0.01"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
           />
-          <CheckboxInput
+          <ToggleInput
             id={`downPaymentReceived-${eventId}`}
-            label="Down Payment Received"
+            label="Deposit received"
             checked={currentEvent.downPaymentReceived || false}
             onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-            className="md:mt-7"
+            description="Keep track of when the initial payment arrives."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`downPaymentReceivedDate-${eventId}`}
@@ -303,7 +349,7 @@ function EventCard(props, ref) {
             icon={<CalendarIcon />}
             value={currentEvent.downPaymentReceivedDate || ''}
             onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
-            disabled={!currentEvent.downPaymentReceived} 
+            disabled={!currentEvent.downPaymentReceived}
           />
           <LabeledInput
             id={`amountPaidAfter-${eventId}`}
@@ -311,7 +357,9 @@ function EventCard(props, ref) {
             type="number"
             value={currentEvent.amountPaidAfter || ''}
             onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
-            placeholder="0.00" min="0" step="0.01"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
           />
           <LabeledInput
             id={`grandTotal-${eventId}`}
@@ -319,7 +367,9 @@ function EventCard(props, ref) {
             type="number"
             value={currentEvent.grandTotal || ''}
             onChange={(e) => handleChange('grandTotal', e.target.value)}
-            placeholder="0.00" min="0" step="0.01"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
           />
           <LabeledInput
             id={`securityDeposit-${eventId}`}
@@ -327,16 +377,17 @@ function EventCard(props, ref) {
             type="number"
             value={currentEvent.securityDeposit || ''}
             onChange={(e) => handleChange('securityDeposit', e.target.value)}
-            placeholder="0.00" min="0" step="0.01"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
           />
-          <div className="md:col-span-1"></div> 
-
-          <CheckboxInput
+          <ToggleInput
             id={`finalPaymentReceived-${eventId}`}
-            label="Final Payment Received"
+            label="Final payment received"
             checked={currentEvent.finalPaymentReceived || false}
             onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-            className="md:mt-7"
+            description="Confirm when the closing balance has been paid."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`finalPaymentReceivedDate-${eventId}`}
@@ -350,53 +401,74 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      {/* Attachments & Notes Section */}
-      <section>
-         <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b border-gray-200 pb-2 flex items-center">
-            <FileText size={20} className="mr-2 text-purple-600"/> Notes & Attachments
-        </h3>
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
+        <header className="mb-5 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600">
+            <FileText size={20} />
+          </span>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Notes & Attachments</h3>
+            <p className="text-sm text-gray-500">
+              Keep everyone aligned with the latest context and paperwork.
+            </p>
+          </div>
+        </header>
         <div className="space-y-5">
           <div>
-            <label htmlFor={`notes-${eventId}`} className="mb-1.5 block text-sm font-medium text-gray-600">Notes</label>
+            <label
+              htmlFor={`notes-${eventId}`}
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
+              Notes
+            </label>
             <textarea
-              ref={notesTextareaRef} // Assign the ref here
+              ref={notesTextareaRef}
               id={`notes-${eventId}`}
               placeholder="Add additional details, client requests, or internal notes..."
               value={currentEvent.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 min-h-[80px] resize-none" // Adjusted min-h, added resize-none
-              rows="3" // Initial rows, JS will override height
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300 min-h-[96px] resize-none"
+              rows="3"
             ></textarea>
           </div>
-          {/* ... File upload and list remains the same ... */}
           <div>
-            <h4 className="text-md font-medium text-gray-600 mb-2">Attachments</h4>
-            <label htmlFor={`fileUpload-${eventId}`} className="w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border-2 border-dashed border-gray-300 p-6 rounded-lg flex flex-col items-center justify-center hover:border-blue-500 transition-colors focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                <Paperclip size={28} className="text-gray-400 mb-2"/>
-                <span className="font-medium text-blue-600">Click to browse</span>
-                <span className="text-xs text-gray-500 mt-1">or drag and drop files here</span>
-                <input
-                    id={`fileUpload-${eventId}`}
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="opacity-0 absolute h-0 w-0"
-                    multiple
-                />
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h4>
+            <label
+              htmlFor={`fileUpload-${eventId}`}
+              className="relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white/80 p-6 text-sm text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/40"
+            >
+              <Paperclip size={28} className="text-blue-400" />
+              <span className="font-medium text-blue-600">Upload or drop files here</span>
+              <span className="text-xs text-gray-500">
+                Share contracts, layouts, or any helpful documents.
+              </span>
+              <input
+                id={`fileUpload-${eventId}`}
+                type="file"
+                onChange={handleFileUpload}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                multiple
+              />
             </label>
-            
+
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium text-gray-500 mb-2">Uploaded files:</p>
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50/80 p-4">
+                <p className="text-sm font-medium text-gray-600 mb-3">Uploaded files</p>
                 <ul className="space-y-2">
                   {currentEvent.files.map((file, index) => (
-                    <li key={index} className="flex items-center justify-between group bg-gray-100 p-2.5 pl-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-sm">
-                      <div className="flex items-center min-w-0">
-                        <Paperclip size={16} className="text-gray-400 mr-2 flex-shrink-0" />
+                    <li
+                      key={index}
+                      className="group flex items-center justify-between rounded-xl border border-transparent bg-white/80 px-3 py-2 text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50/50"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                          <Paperclip size={16} />
+                        </span>
                         <a
                           href={file.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 hover:underline truncate"
+                          className="truncate text-blue-600 hover:text-blue-700 hover:underline"
                           title={file.name}
                         >
                           {file.name}
@@ -404,7 +476,7 @@ function EventCard(props, ref) {
                       </div>
                       <button
                         onClick={() => handleDeleteFile(file, index)}
-                        className="text-red-500 text-xs ml-3 p-1.5 rounded-md hover:bg-red-100 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity font-medium"
+                        className="ml-3 rounded-lg px-2 py-1 text-xs font-medium text-red-500 transition hover:bg-red-100"
                         title="Delete this file"
                       >
                         Delete
