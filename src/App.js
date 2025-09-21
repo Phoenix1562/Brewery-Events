@@ -285,47 +285,8 @@ function App() {
                   className="mt-6 rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
                   style={{ width: '100%' }}
                 >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-                      <button
-                        onClick={handleSidePanelClose}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
-                      >
-                        Cancel / Close
-                      </button>
-                      <button
-                        onClick={() => deleteEvent(activeEvent.id)}
-                        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-                      >
-                        Delete
-                      </button>
-                    </div>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                      {activeEvent.status !== 'maybe' && (
-                        <button
-                          onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                          className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
-                        >
-                          {activeEvent.status === 'upcoming'
-                            ? '← Move to Pending Events'
-                            : activeEvent.status === 'finished'
-                              ? '← Move to Upcoming Events'
-                              : '← Move Left'}
-                        </button>
-                      )}
-                      {activeEvent.status !== 'finished' && (
-                        <button
-                          onClick={() => handleMoveRightEvent(activeEvent.id)}
-                          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
-                        >
-                          {activeEvent.status === 'maybe'
-                            ? 'Move to Upcoming Events →'
-                            : activeEvent.status === 'upcoming'
-                              ? 'Move to Finished Events →'
-                              : 'Move Right →'}
-                        </button>
-                      )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                       <button
                         onClick={() => {
                           if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
@@ -338,6 +299,45 @@ function App() {
                         className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600 shadow-sm"
                       >
                         Save & Close
+                      </button>
+                      {activeEvent.status !== 'finished' && (
+                        <button
+                          onClick={() => handleMoveRightEvent(activeEvent.id)}
+                          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+                        >
+                          {activeEvent.status === 'maybe'
+                            ? 'Move to Upcoming Events →'
+                            : activeEvent.status === 'upcoming'
+                              ? 'Move to Finished Events →'
+                              : 'Move Right →'}
+                        </button>
+                      )}
+                      {activeEvent.status !== 'maybe' && (
+                        <button
+                          onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                          className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                        >
+                          {activeEvent.status === 'upcoming'
+                            ? '← Move to Pending Events'
+                            : activeEvent.status === 'finished'
+                              ? '← Move to Upcoming Events'
+                              : '← Move Left'}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                      <button
+                        onClick={() => deleteEvent(activeEvent.id)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={handleSidePanelClose}
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
+                      >
+                        Cancel / Close
                       </button>
                     </div>
                   </div>

@@ -1,7 +1,7 @@
 // components/EventCard.js
 import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from 'react'; // Added useRef
 import { uploadFile, deleteFile } from '../firebase';
-import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign, Info, MapPin } from 'lucide-react';
+import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign, Info } from 'lucide-react';
 
 // LabeledInput component (remains the same)
 function LabeledInput({ label, type, value, onChange, placeholder, disabled, id, icon, ...rest }) {
@@ -183,171 +183,9 @@ function EventCard(props, ref) {
   const currentEvent = localEvent || {};
   const eventId = currentEvent.id || 'new-event';
 
-  const formatDateDisplay = (value) => {
-    if (!value) return 'Date not set';
-    const parsedDate = new Date(value);
-    if (!Number.isNaN(parsedDate.getTime())) {
-      return parsedDate.toLocaleDateString(undefined, {
-        weekday: 'short',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    }
-
-    const baseValue = value.split('T')[0];
-    const [year, month, day] = baseValue.split('-').map(Number);
-    if (year && month && day) {
-      const fallbackDate = new Date(Date.UTC(year, month - 1, day));
-      if (!Number.isNaN(fallbackDate.getTime())) {
-        return fallbackDate.toLocaleDateString(undefined, {
-          weekday: 'short',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        });
-      }
-    }
-
-    return value;
-  };
-
-  const formatTimeDisplay = (value) => {
-    if (!value) return '';
-    const [hours, minutes] = value.split(':').map((segment) => Number(segment));
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-      return value;
-    }
-
-    const time = new Date();
-    time.setHours(hours, minutes, 0, 0);
-    if (Number.isNaN(time.getTime())) {
-      return value;
-    }
-
-    return time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  };
-
-  const formatCurrency = (value) => {
-    if (value === undefined || value === null || value === '') return '';
-    const numericValue = Number(value);
-    if (Number.isNaN(numericValue)) return value;
-    return numericValue.toLocaleString(undefined, {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const formattedDate = formatDateDisplay(currentEvent.eventDate);
-  const startTimeDisplay = formatTimeDisplay(currentEvent.startTime);
-  const endTimeDisplay = formatTimeDisplay(currentEvent.endTime);
-  const timeRange = currentEvent.allDay
-    ? 'All day'
-    : [startTimeDisplay, endTimeDisplay].filter(Boolean).join(' – ') || 'Time not set';
-
-  const statusMeta = {
-    maybe: {
-      label: 'Pending Decision',
-      className: 'bg-amber-100 text-amber-700 border border-amber-200',
-    },
-    upcoming: {
-      label: 'Upcoming',
-      className: 'bg-blue-100 text-blue-700 border border-blue-200',
-    },
-    finished: {
-      label: 'Completed',
-      className: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-    },
-  };
-
-  const statusKey = currentEvent.status || 'maybe';
-  const statusBadge = statusMeta[statusKey] || {
-    label: statusKey || 'Event',
-    className: 'bg-gray-100 text-gray-600 border border-gray-200',
-  };
-
-  let guestLabel = '';
-  if (
-    currentEvent.numberOfGuests !== undefined &&
-    currentEvent.numberOfGuests !== null &&
-    currentEvent.numberOfGuests !== ''
-  ) {
-    const guestCount = Number(currentEvent.numberOfGuests);
-    guestLabel = Number.isNaN(guestCount)
-      ? `${currentEvent.numberOfGuests} guests`
-      : `${guestCount} guest${guestCount === 1 ? '' : 's'}`;
-  }
-
-  const highlightBadges = [
-    currentEvent.buildingArea && {
-      icon: <MapPin size={14} />,
-      text: currentEvent.buildingArea,
-      className: 'bg-blue-50 text-blue-700 border-blue-100',
-    },
-    guestLabel && {
-      icon: <Users size={14} />,
-      text: guestLabel,
-      className: 'bg-purple-50 text-purple-700 border-purple-100',
-    },
-    currentEvent.priceGiven && {
-      icon: <DollarSign size={14} />,
-      text: formatCurrency(currentEvent.priceGiven),
-      className: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    },
-  ].filter(Boolean);
-
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {currentEvent.eventName || 'Untitled Event'}
-              </h2>
-              <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusBadge.className}`}
-              >
-                {statusBadge.label}
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-gray-500">
-              {currentEvent.clientName
-                ? `Hosted for ${currentEvent.clientName}`
-                : 'Add client information so everyone knows who this event is for.'}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 text-sm text-gray-600 md:text-right">
-            <div className="flex items-center gap-2 md:justify-end">
-              <CalendarIcon size={16} className="text-blue-500" />
-              <span>{formattedDate}</span>
-            </div>
-            <div className="flex items-center gap-2 md:justify-end">
-              <Clock size={16} className="text-indigo-500" />
-              <span>{timeRange}</span>
-            </div>
-          </div>
-        </div>
-        {highlightBadges.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {highlightBadges.map((badge, index) => (
-              <span
-                key={index}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${badge.className}`}
-              >
-                <span className="flex items-center justify-center rounded-full bg-white/70 p-1 text-current">
-                  {badge.icon}
-                </span>
-                {badge.text}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <section className="rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-sm">
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
         <header className="mb-5 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
             <Info size={20} />
@@ -359,7 +197,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
           <LabeledInput
             id={`clientName-${eventId}`}
             label="Client Name"
@@ -441,7 +279,7 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-sm">
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
         <header className="mb-5 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
             <DollarSign size={20} />
@@ -453,7 +291,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
           <LabeledInput
             id={`priceGiven-${eventId}`}
             label="Price Given ($)"
@@ -540,7 +378,7 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-sm">
+      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
         <header className="mb-5 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600">
             <FileText size={20} />
