@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Calendar, Filter, BarChart2, LineChart, DollarSign, CheckSquare, Users, MapPin, ChevronDown, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import TabHeader from './TabHeader';
 
 // --- Reusable UI Components ---
 
@@ -339,13 +340,11 @@ function StatisticsDashboard({ events }) {
 
     return (
         <div className="p-4 sm:p-6 bg-slate-50 min-h-screen">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3">
-                <div className="flex items-center">
-                    <BarChart2 className="h-8 w-8 text-emerald-600 mr-3" />
-                    <h1 className="text-2xl font-bold text-gray-800">Event Insights Dashboard</h1>
-                </div>
-                {/* Placeholder for global actions like "Export All Stats" if needed */}
-            </div>
+            <TabHeader
+                icon={<BarChart2 className="h-7 w-7 text-emerald-600" />}
+                title="Event Insights Dashboard"
+            />
+            {/* Placeholder for global actions like "Export All Stats" if needed */}
 
             <DateRangeFilter onFilterChange={handleFilterChange} />
 
