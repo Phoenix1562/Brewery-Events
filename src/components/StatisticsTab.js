@@ -1,8 +1,22 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Calendar, Filter, BarChart2, LineChart, DollarSign, CheckSquare, Users, MapPin, ChevronDown, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { Calendar, Filter, BarChart2, LineChart, DollarSign, CheckSquare, Users, MapPin, ChevronDown, TrendingUp, TrendingDown, AlertCircle, Sparkles, Award, Trophy, Activity } from 'lucide-react';
 import TabHeader from './TabHeader';
 
 // --- Reusable UI Components ---
+
+const formatCurrency = (value, options = {}) => {
+    const amount = Number(value) || 0;
+    const { minimumFractionDigits = 0, maximumFractionDigits = 0 } = options;
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits,
+        maximumFractionDigits,
+    }).format(amount);
+};
+
+const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_NAMES_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // KPICard Component
 const KPICard = ({ title, value, icon, trend, trendDirection, unit, isLoading }) => (
@@ -198,6 +212,69 @@ const BasicBarChart = ({ data, dataKey, labelKey, title, unit = '' }) => {
     );
 };
 
+const InsightCard = ({ icon, title, headline, subtext, accent = 'emerald' }) => {
+    const accentStyles = {
+        emerald: 'bg-emerald-50 text-emerald-600',
+        indigo: 'bg-indigo-50 text-indigo-600',
+        amber: 'bg-amber-50 text-amber-600',
+    };
+
+    const badgeClass = accentStyles[accent] || accentStyles.emerald;
+
+    return (
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-lg border border-gray-200 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+                <div className={`p-2 rounded-lg ${badgeClass}`}>
+                    {icon && React.cloneElement(icon, { size: 18 })}
+                </div>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{title}</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-800 leading-tight">
+                {headline}
+            </div>
+            {subtext && (
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                    {subtext}
+                </p>
+            )}
+        </div>
+    );
+};
+
+const RankedListCard = ({ title, icon, items, emptyMessage }) => (
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200 h-full flex flex-col">
+        <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-slate-100 text-slate-600">
+                {icon && React.cloneElement(icon, { size: 18 })}
+            </div>
+            <h4 className="text-md font-semibold text-gray-700">{title}</h4>
+        </div>
+        {(!items || items.length === 0) ? (
+            <div className="flex-grow flex items-center justify-center text-sm text-gray-500 text-center py-4">
+                {emptyMessage}
+            </div>
+        ) : (
+            <ul className="space-y-3 flex-grow">
+                {items.map((item, index) => (
+                    <li key={item.key || item.label || index} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-xs font-bold text-gray-400 w-6">{String(index + 1).padStart(2, '0')}</span>
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 truncate">{item.label}</p>
+                                {item.description && (
+                                    <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-sm font-semibold text-emerald-600 whitespace-nowrap">
+                            {item.value}
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        )}
+    </div>
+);
 
 // --- Main StatisticsDashboard Component ---
 function StatisticsDashboard({ events }) {
@@ -272,11 +349,31 @@ function StatisticsDashboard({ events }) {
             .sort((a, b) => a.monthYear.localeCompare(b.monthYear));
     }, [filteredEvents, isLoading]);
     
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = MONTH_NAMES_SHORT;
     const formattedMonthlyRevenueData = monthlyRevenueData.map(item => {
         const [year, monthNum] = item.monthYear.split('-');
         return { label: `${monthNames[parseInt(monthNum)-1]} ${year.slice(-2)}`, value: item.revenue };
     });
+
+    const revenueTrend = useMemo(() => {
+        if (!monthlyRevenueData || monthlyRevenueData.length === 0) return null;
+        const latest = monthlyRevenueData[monthlyRevenueData.length - 1];
+        const previous = monthlyRevenueData.length > 1 ? monthlyRevenueData[monthlyRevenueData.length - 2] : null;
+        if (!latest) return null;
+        const diff = previous ? latest.revenue - previous.revenue : latest.revenue;
+        const percent = previous && previous.revenue ? (diff / previous.revenue) * 100 : null;
+        const [latestYear, latestMonth] = latest.monthYear.split('-');
+        const [previousYear, previousMonth] = previous ? previous.monthYear.split('-') : [null, null];
+        return {
+            current: latest,
+            previous,
+            diff,
+            percent,
+            direction: diff >= 0 ? 'up' : 'down',
+            currentLabel: `${MONTH_NAMES_FULL[parseInt(latestMonth, 10) - 1]} ${latestYear}`,
+            previousLabel: previous ? `${MONTH_NAMES_FULL[parseInt(previousMonth, 10) - 1]} ${previousYear}` : null,
+        };
+    }, [monthlyRevenueData]);
 
     const venueDistributionData = useMemo(() => {
         if (isLoading || !kpiData.venueCounts) return [];
@@ -284,6 +381,86 @@ function StatisticsDashboard({ events }) {
             .map(([name, count]) => ({ name, value: count }))
             .sort((a,b) => b.value - a.value); // Sort by count desc
     }, [isLoading, kpiData.venueCounts]);
+
+    const topVenue = useMemo(() => {
+        if (!venueDistributionData || venueDistributionData.length === 0) return null;
+        const [primary, secondary] = venueDistributionData;
+        const eventTotal = filteredEvents.length || 1;
+        return {
+            name: primary.name,
+            count: primary.value,
+            share: Math.round((primary.value / eventTotal) * 100),
+            runnerUp: secondary ? secondary.name : null,
+        };
+    }, [venueDistributionData, filteredEvents]);
+
+    const clientAggregates = useMemo(() => {
+        if (!filteredEvents || filteredEvents.length === 0) return [];
+        const map = {};
+        filteredEvents.forEach(event => {
+            const clientName = event.clientName && event.clientName.trim() ? event.clientName.trim() : 'Unnamed Client';
+            const revenue = parseFloat(event.grandTotal) || 0;
+            if (!map[clientName]) {
+                map[clientName] = { revenue: 0, count: 0 };
+            }
+            map[clientName].revenue += revenue;
+            map[clientName].count += 1;
+        });
+        return Object.entries(map)
+            .map(([name, info]) => ({ name, ...info }))
+            .sort((a, b) => b.revenue - a.revenue);
+    }, [filteredEvents]);
+
+    const topClient = clientAggregates[0] || null;
+    const repeatClients = useMemo(() => clientAggregates.filter(client => client.count > 1), [clientAggregates]);
+    const repeatClientsCount = repeatClients.length;
+    const leadingRepeatClient = repeatClients[0] || null;
+
+    const highValueThreshold = useMemo(() => {
+        if (!filteredEvents || filteredEvents.length === 0) return 0;
+        const average = kpiData.avgRevenuePerEvent || 0;
+        if (!average) return 0;
+        return Math.max(average * 1.35, 5000);
+    }, [filteredEvents, kpiData.avgRevenuePerEvent]);
+
+    const highValueEvents = useMemo(() => {
+        if (!filteredEvents || filteredEvents.length === 0 || !highValueThreshold) return [];
+        return filteredEvents.filter(event => (parseFloat(event.grandTotal) || 0) >= highValueThreshold);
+    }, [filteredEvents, highValueThreshold]);
+
+    const topClientsList = useMemo(() => clientAggregates.slice(0, 4).map(client => ({
+        key: client.name,
+        label: client.name,
+        description: `${client.count} event${client.count === 1 ? '' : 's'}`,
+        value: formatCurrency(client.revenue),
+    })), [clientAggregates]);
+
+    const topEventsList = useMemo(() => {
+        if (!filteredEvents || filteredEvents.length === 0) return [];
+        const formatMonth = (dateString) => {
+            if (!dateString) return 'Date TBD';
+            const [year, month] = dateString.split('-');
+            if (!year || !month) return 'Date TBD';
+            const monthNumber = parseInt(month, 10);
+            if (Number.isNaN(monthNumber)) return year || 'Date TBD';
+            const monthLabel = MONTH_NAMES_FULL[monthNumber - 1] || MONTH_NAMES_FULL[0];
+            return `${monthLabel} ${year}`;
+        };
+        return [...filteredEvents]
+            .map(event => ({ ...event, revenue: parseFloat(event.grandTotal) || 0 }))
+            .filter(event => event.revenue > 0)
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 4)
+            .map((event, index) => ({
+                key: event.id || `${event.eventName || event.clientName || 'event'}-${index}`,
+                label: event.eventName || 'Untitled Event',
+                description: `${event.clientName || 'Unknown client'} • ${formatMonth(event.eventDate ? event.eventDate.substring(0, 7) : '')}`,
+                value: formatCurrency(event.revenue),
+            }));
+    }, [filteredEvents]);
+
+    const highValueShare = filteredEvents.length ? Math.round((highValueEvents.length / filteredEvents.length) * 100) : 0;
+    const topClientShare = topClient && kpiData.totalRevenue > 0 ? Math.round((topClient.revenue / kpiData.totalRevenue) * 100) : 0;
 
 
     // --- Detailed Reports Data (similar to your old StatisticsTab) ---
@@ -317,11 +494,152 @@ function StatisticsDashboard({ events }) {
         return result;
     }, [filteredEvents]);
 
+    const topMonthsList = useMemo(() => {
+        if (!detailedMonthlyStats || detailedMonthlyStats.length === 0) return [];
+        return [...detailedMonthlyStats]
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 4)
+            .map(stat => ({
+                key: stat.monthYear,
+                label: getFormattedMonthYear(stat.monthYear),
+                description: `${stat.count} event${stat.count === 1 ? '' : 's'}`,
+                value: formatCurrency(stat.totalRevenue),
+            }));
+    }, [detailedMonthlyStats]);
+
+    const averageMonthlyRevenue = useMemo(() => {
+        if (!detailedMonthlyStats || detailedMonthlyStats.length === 0) return 0;
+        const total = detailedMonthlyStats.reduce((sum, stat) => sum + stat.totalRevenue, 0);
+        return total / detailedMonthlyStats.length;
+    }, [detailedMonthlyStats]);
+
+    const busiestMonth = useMemo(() => {
+        if (!detailedMonthlyStats || detailedMonthlyStats.length === 0) return null;
+        const sorted = [...detailedMonthlyStats].sort((a, b) => {
+            if (b.count === a.count) {
+                return b.totalRevenue - a.totalRevenue;
+            }
+            return b.count - a.count;
+        });
+        return sorted[0];
+    }, [detailedMonthlyStats]);
+
     const getFormattedMonthYear = (key) => {
+        if (!key) return '';
         const [year, month] = key.split('-');
-        const monthNamesFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        return `${monthNamesFull[parseInt(month, 10) - 1]} ${year}`;
+        const monthIndex = parseInt(month, 10) - 1;
+        const monthName = MONTH_NAMES_FULL[monthIndex] || MONTH_NAMES_FULL[0];
+        return `${monthName} ${year}`;
     };
+
+    const timeframeDescriptor = useMemo(() => {
+        switch (dateFilter.preset) {
+            case 'allTime':
+                return 'across all recorded events';
+            case 'thisYear':
+                return 'so far this year';
+            case 'thisMonth':
+                return 'this month';
+            case 'lastMonth':
+                return 'last month';
+            case 'last30days':
+                return 'in the last 30 days';
+            case 'last90days':
+                return 'in the last 90 days';
+            case 'custom':
+                return 'for the custom range';
+            default:
+                return 'in the selected range';
+        }
+    }, [dateFilter.preset]);
+
+    const summaryHighlights = useMemo(() => {
+        if (isLoading || !filteredEvents || filteredEvents.length === 0) return [];
+        const highlights = [];
+        if (highValueEvents.length > 0 && highValueThreshold) {
+            highlights.push(`${highValueEvents.length} booking${highValueEvents.length === 1 ? '' : 's'} cleared ${formatCurrency(highValueThreshold)}${filteredEvents.length ? ` (${highValueShare}% of volume)` : ''}.`);
+        }
+        if (topClient) {
+            const shareText = topClientShare ? ` (${topClientShare}% of revenue)` : '';
+            highlights.push(`${topClient.name} delivered ${formatCurrency(topClient.revenue)} across ${topClient.count} booking${topClient.count === 1 ? '' : 's'}${shareText}.`);
+        }
+        if (topVenue) {
+            highlights.push(`${topVenue.name} hosted ${topVenue.count} event${topVenue.count === 1 ? '' : 's'}${topVenue.share ? ` (${topVenue.share}% share)` : ''}${topVenue.runnerUp ? `, ahead of ${topVenue.runnerUp}` : ''}.`);
+        }
+        if (busiestMonth) {
+            highlights.push(`${getFormattedMonthYear(busiestMonth.monthYear)} saw ${busiestMonth.count} event${busiestMonth.count === 1 ? '' : 's'} totaling ${formatCurrency(busiestMonth.totalRevenue)}.`);
+        }
+        if (averageMonthlyRevenue) {
+            highlights.push(`Average monthly revenue sits at ${formatCurrency(averageMonthlyRevenue)}.`);
+        }
+        if (revenueTrend && revenueTrend.previous) {
+            if (revenueTrend.percent !== null) {
+                highlights.push(`${revenueTrend.direction === 'up' ? 'Revenue climbed' : 'Revenue eased'} ${Math.abs(revenueTrend.percent).toFixed(1)}% versus ${revenueTrend.previousLabel}.`);
+            } else {
+                highlights.push(`${revenueTrend.direction === 'up' ? 'Revenue increased' : 'Revenue decreased'} by ${formatCurrency(Math.abs(revenueTrend.diff))} versus ${revenueTrend.previousLabel}.`);
+            }
+        }
+        if (repeatClientsCount > 0) {
+            highlights.push(`${repeatClientsCount} repeat client${repeatClientsCount === 1 ? '' : 's'}${leadingRepeatClient ? ` led by ${leadingRepeatClient.name}` : ''}.`);
+        }
+        return highlights.slice(0, 5);
+    }, [isLoading, filteredEvents, highValueEvents, highValueThreshold, highValueShare, topClient, topClientShare, topVenue, busiestMonth, averageMonthlyRevenue, revenueTrend, repeatClientsCount, leadingRepeatClient]);
+
+    const premiumSummary = useMemo(() => {
+        if (isLoading) {
+            return 'Crunching the latest performance data...';
+        }
+        if (!filteredEvents || filteredEvents.length === 0) {
+            return 'No finished events in this range yet. Adjust the filters to see insights as bookings close.';
+        }
+        const totalRevenueFormatted = formatCurrency(kpiData.totalRevenue, { maximumFractionDigits: 0 });
+        const baseLine = `We wrapped ${filteredEvents.length} finished event${filteredEvents.length === 1 ? '' : 's'} worth ${totalRevenueFormatted} ${timeframeDescriptor}.`;
+        const premiumLine = highValueEvents.length > 0 && highValueThreshold
+            ? ` ${highValueEvents.length} booking${highValueEvents.length === 1 ? '' : 's'} cleared ${formatCurrency(highValueThreshold, { maximumFractionDigits: 0 })}, highlighting strong premium demand.`
+            : '';
+        const loyaltyLine = repeatClientsCount > 0
+            ? ` ${repeatClientsCount} client${repeatClientsCount === 1 ? ' is' : 's are'} returning${leadingRepeatClient ? `, led by ${leadingRepeatClient.name}` : ''}.`
+            : '';
+        let momentumLine = '';
+        if (revenueTrend && revenueTrend.previous) {
+            momentumLine = revenueTrend.percent !== null
+                ? ` Momentum ${revenueTrend.direction === 'up' ? 'improved' : 'softened'} ${Math.abs(revenueTrend.percent).toFixed(1)}% versus ${revenueTrend.previousLabel}.`
+                : ` Momentum ${revenueTrend.direction === 'up' ? 'improved' : 'softened'} by ${formatCurrency(Math.abs(revenueTrend.diff), { maximumFractionDigits: 0 })} versus ${revenueTrend.previousLabel}.`;
+        }
+        return `${baseLine}${premiumLine}${loyaltyLine}${momentumLine}`.trim();
+    }, [isLoading, filteredEvents, kpiData.totalRevenue, timeframeDescriptor, highValueEvents, highValueThreshold, repeatClientsCount, leadingRepeatClient, revenueTrend]);
+
+    const premiumDealsHeadline = highValueEvents.length > 0
+        ? `${highValueEvents.length} premium booking${highValueEvents.length === 1 ? '' : 's'}`
+        : 'No premium bookings yet';
+    const premiumDealsSubtext = highValueThreshold
+        ? `Benchmark: ${formatCurrency(highValueThreshold, { maximumFractionDigits: 0 })}${filteredEvents.length ? ` • ${highValueShare}% of volume` : ''}`
+        : 'Add revenue details to unlock this insight.';
+
+    const topClientHeadline = topClient ? topClient.name : 'Awaiting standout client';
+    const topClientSubtext = topClient
+        ? `${formatCurrency(topClient.revenue)} across ${topClient.count} event${topClient.count === 1 ? '' : 's'}${topClientShare ? ` • ${topClientShare}% of revenue` : ''}`
+        : 'Track finished events to highlight leading partners.';
+
+    const loyaltyHeadline = repeatClientsCount
+        ? `${repeatClientsCount} repeat client${repeatClientsCount === 1 ? '' : 's'}`
+        : 'Build repeat business';
+    const loyaltySubtext = repeatClientsCount
+        ? `Led by ${leadingRepeatClient ? `${leadingRepeatClient.name} (${leadingRepeatClient.count} booking${leadingRepeatClient.count === 1 ? '' : 's'})` : 'loyal partners'}.`
+        : 'Encourage second bookings to see loyalty momentum.';
+
+    const revenueMomentumHeadline = revenueTrend
+        ? (revenueTrend.previous
+            ? (revenueTrend.percent !== null
+                ? `${revenueTrend.direction === 'up' ? '+' : '-'}${Math.abs(revenueTrend.percent).toFixed(1)}%`
+                : `${revenueTrend.direction === 'up' ? '+' : '-'}${formatCurrency(Math.abs(revenueTrend.diff), { maximumFractionDigits: 0 })}`)
+            : formatCurrency(revenueTrend.current.revenue, { maximumFractionDigits: 0 }))
+        : 'Need more history';
+    const revenueMomentumSubtext = revenueTrend
+        ? (revenueTrend.previous
+            ? `vs ${revenueTrend.previousLabel} • ${formatCurrency(revenueTrend.current.revenue, { maximumFractionDigits: 0 })} in ${revenueTrend.currentLabel}`
+            : `First data point in ${revenueTrend.currentLabel}`)
+        : 'Log at least two months of revenue to track momentum.';
     
     // For Revenue Comparison Tool
     const [comparisonStart, setComparisonStart] = useState('');
@@ -354,6 +672,63 @@ function StatisticsDashboard({ events }) {
                 <KPICard title="Finished Events" value={kpiData.eventCount} icon={<CheckSquare />} isLoading={isLoading} />
                 <KPICard title="Avg. Revenue / Event" value={kpiData.avgRevenuePerEvent.toFixed(2)} unit="$" icon={<DollarSign />} isLoading={isLoading} />
                 <KPICard title="Busiest Venue" value={kpiData.busiestVenue} icon={<MapPin />} isLoading={isLoading} />
+            </div>
+
+            {/* Executive Summary */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6 sm:mb-8">
+                <div className="xl:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-700 text-white shadow-xl">
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,white,transparent_60%)] pointer-events-none"></div>
+                    <div className="relative p-6 sm:p-8">
+                        <div className="flex items-center gap-3 mb-3">
+                            <Sparkles className="h-6 w-6 text-white/90" />
+                            <h3 className="text-xl font-semibold tracking-tight">Executive Summary</h3>
+                        </div>
+                        <p className="text-sm sm:text-base text-emerald-50/90 leading-relaxed">
+                            {premiumSummary}
+                        </p>
+                        {!isLoading && filteredEvents.length === 0 && (
+                            <p className="mt-4 text-sm text-emerald-50/80">Try expanding the date range to populate the dashboard.</p>
+                        )}
+                        {summaryHighlights.length > 0 && (
+                            <ul className="mt-5 space-y-2">
+                                {summaryHighlights.map((item, index) => (
+                                    <li key={`highlight-${index}`} className="flex items-start gap-2 text-sm text-emerald-50/95">
+                                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white/80 flex-shrink-0"></span>
+                                        <span className="leading-snug">{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
+                    <InsightCard icon={<Trophy />} title="Premium Deals" headline={premiumDealsHeadline} subtext={premiumDealsSubtext} />
+                    <InsightCard icon={<Award />} title="Top Client" headline={topClientHeadline} subtext={topClientSubtext} accent="amber" />
+                    <InsightCard icon={<Users />} title="Client Loyalty" headline={loyaltyHeadline} subtext={loyaltySubtext} accent="indigo" />
+                    <InsightCard icon={<Activity />} title="Revenue Momentum" headline={revenueMomentumHeadline} subtext={revenueMomentumSubtext} />
+                </div>
+            </div>
+
+            {/* Ranked Lists */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
+                <RankedListCard
+                    title="Top Clients"
+                    icon={<Users />}
+                    items={topClientsList}
+                    emptyMessage="No finished clients in this range yet."
+                />
+                <RankedListCard
+                    title="Showcase Events"
+                    icon={<Trophy />}
+                    items={topEventsList}
+                    emptyMessage="Record revenue to spotlight standout events."
+                />
+                <RankedListCard
+                    title="Monthly Leaders"
+                    icon={<Calendar />}
+                    items={topMonthsList}
+                    emptyMessage="Once events close each month, your leaderboard will appear."
+                />
             </div>
 
             {/* Main Visualization Area */}
