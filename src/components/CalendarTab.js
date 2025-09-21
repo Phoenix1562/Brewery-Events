@@ -441,9 +441,9 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl leading-none p-1 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-full" onClick={() => setInfoModalOpen(false)} title="Close" aria-label="Close modal">&times;</button>
             <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">{infoModalContent.date ? infoModalContent.date.toDateString() : 'Details'}</h4>
             <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
-              <div>
-                <h5 className="text-base font-semibold mb-2 text-gray-700">Notes</h5>
-                {infoModalContent.notes.length > 0 && (
+              {infoModalContent.notes.length > 0 && (
+                <div>
+                  <h5 className="text-base font-semibold mb-2 text-gray-700">Notes</h5>
                   <ul className="space-y-2">
                     {infoModalContent.notes.map((note) => (
                       <li key={`modal-note-${note.id}`} className="flex justify-between items-start p-2 rounded border" style={{ backgroundColor: `${note.color}20` }}>
@@ -458,8 +458,8 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
+                </div>
+              )}
               <div>
                 <h5 className="text-base font-semibold mb-2 text-gray-700">Events</h5>
                 {infoModalContent.events.length === 0 ? <p className="text-sm text-gray-500 italic">No events scheduled for this day.</p> : (
