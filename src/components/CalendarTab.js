@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays } from 'lucide-react';
 import { db } from '../firebase'; // Assuming this is how you import Firebase
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
+import SidePanel from './SidePanel';
+import EventCard from './EventCard';
 import TabHeader from './TabHeader';
 
 // Helper: Format Date as YYYY-MM-DD using local time
@@ -34,7 +36,7 @@ const formatTime12Hour = (time) => {
 };
 
 
-function CalendarTab({ events = [], onEventClick }) {
+function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
   const [includePending, setIncludePending] = useState(() => {
     const stored = localStorage.getItem('calendarIncludePending');
     return stored ? stored === 'true' : false;
@@ -55,6 +57,10 @@ function CalendarTab({ events = [], onEventClick }) {
     color: '#4299e1',
     date: '',
   });
+
+  const [selectedEventForPanel, setSelectedEventForPanel] = useState(null);
+  const [isEventPanelOpen, setIsEventPanelOpen] = useState(false);
+  const eventCardRef = useRef(null);
 
   const todayStr = useMemo(() => formatDate(new Date()), []);
 
@@ -179,6 +185,67 @@ function CalendarTab({ events = [], onEventClick }) {
       alert("Failed to delete note. Check console for details.");
     }
   };
+
+  const handleCloseEventPanel = useCallback(() => {
+    setIsEventPanelOpen(false);
+    setSelectedEventForPanel(null);
+  }, []);
+
+  const handleEventCardSetActive = useCallback((value) => {
+    if (value) {
+      setSelectedEventForPanel(value);
+      setIsEventPanelOpen(true);
+    } else {
+      handleCloseEventPanel();
+    }
+  }, [handleCloseEventPanel]);
+
+  const handlePanelCloseRequest = useCallback(() => {
+    if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+      eventCardRef.current.handleClose();
+    } else {
+      handleCloseEventPanel();
+    }
+  }, [handleCloseEventPanel]);
+
+  const handleOpenEventPanel = useCallback((eventData) => {
+    if (!eventData) return;
+    setSelectedEventForPanel(eventData);
+    setIsEventPanelOpen(true);
+    setInfoModalOpen(false);
+    if (onEventClick && typeof onEventClick === 'function') {
+      onEventClick(eventData);
+    }
+  }, [onEventClick]);
+
+  const handleSaveEventInPanel = useCallback(async (updatedEvent) => {
+    if (!onEventUpdate) {
+      console.warn('CalendarTab: onEventUpdate prop not provided. Cannot persist event changes.');
+      return;
+    }
+
+    try {
+      await onEventUpdate(updatedEvent);
+      setSelectedEventForPanel(updatedEvent);
+    } catch (error) {
+      console.error('Failed to save event from CalendarTab side panel:', error);
+      alert('Failed to save event. Please try again.');
+    }
+  }, [onEventUpdate]);
+
+  useEffect(() => {
+    if (!selectedEventForPanel) return;
+
+    const latest = events.find(evt => evt.id === selectedEventForPanel.id);
+    if (!latest) {
+      handleCloseEventPanel();
+      return;
+    }
+
+    if (latest !== selectedEventForPanel) {
+      setSelectedEventForPanel(latest);
+    }
+  }, [events, selectedEventForPanel, handleCloseEventPanel]);
   
   const weeks = useMemo(() => {
     const weeksArray = [];
@@ -364,10 +431,7 @@ function CalendarTab({ events = [], onEventClick }) {
                               key={`event-${event.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openInfoModalForDate(day, eventsForCellDisplay, notesForDay);
-                                if (onEventClick && typeof onEventClick === 'function') {
-                                  onEventClick(event);
-                                }
+                                handleOpenEventPanel(event);
                               }}
                               className="bg-blue-500 text-white text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded overflow-hidden whitespace-nowrap truncate block w-full text-left focus:outline-none focus:ring-1 focus:ring-blue-300 hover:bg-blue-600 transition-opacity"
                               title={`${event.eventName || 'Unnamed'} ${timeStr ? `[${timeStr}]` : ''}`}
@@ -424,7 +488,12 @@ function CalendarTab({ events = [], onEventClick }) {
                           {event.clientName && <div className="text-xs text-gray-600 mt-0.5">Client: {event.clientName}</div>}
                           <div className="text-xs text-gray-600 mt-0.5">Time: {timeStr}</div>
                           {event.buildingArea && <div className="text-xs text-gray-600 mt-0.5">Area: {event.buildingArea}</div>}
-                          <p className="text-xs text-gray-500 mt-1">To edit, open this event from the main events tabs.</p>
+                          <button
+                            onClick={() => handleOpenEventPanel(event)}
+                            className="text-xs text-blue-600 hover:underline mt-1.5 font-medium"
+                          >
+                            View Full Details / Edit
+                          </button>
                         </li>
                       );
                     })}
@@ -442,7 +511,7 @@ function CalendarTab({ events = [], onEventClick }) {
       )}
 
       {/* Note Creation/Edit Modal (remains the same) */}
-      {noteModalOpen && createPortal( /* ... your existing Note Modal JSX ... */ 
+      {noteModalOpen && createPortal( /* ... your existing Note Modal JSX ... */
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={closeNoteModal}>
           <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col transform scale-[0.9] laptop:scale-100 laptop:translate-x-0 sm:laptop:translate-x-24 origin-top" onClick={(e) => e.stopPropagation()}>
             <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">{newNote.id ? 'Edit Note' : 'Add Calendar Note'}</h4>
@@ -480,6 +549,37 @@ function CalendarTab({ events = [], onEventClick }) {
           </div>
         </div>,
         document.body
+      )}
+
+      {isEventPanelOpen && selectedEventForPanel && (
+        <SidePanel
+          isOpen={isEventPanelOpen}
+          onClose={handlePanelCloseRequest}
+          title={`Event Details: ${selectedEventForPanel.eventName || 'Unnamed Event'}`}
+        >
+          <EventCard
+            ref={eventCardRef}
+            event={selectedEventForPanel}
+            onSave={handleSaveEventInPanel}
+            setActiveEvent={handleEventCardSetActive}
+          />
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => eventCardRef.current && typeof eventCardRef.current.triggerSave === 'function' && eventCardRef.current.triggerSave()}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={handlePanelCloseRequest}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            >
+              Save &amp; Close
+            </button>
+          </div>
+        </SidePanel>
       )}
       </div>
     </div>
