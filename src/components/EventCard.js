@@ -27,26 +27,47 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, id,
   );
 }
 
-// CheckboxInput component (remains the same)
-function CheckboxInput({ label, checked, onChange, id, disabled, className }) {
+// ToggleInput component
+function ToggleInput({ label, checked, onChange, id, disabled, description, className = '' }) {
   return (
-    <div
-      className={`flex items-center rounded-xl border border-transparent px-3 py-2 transition ${
-        disabled ? 'bg-gray-100' : 'bg-white/60 hover:border-blue-200'
+    <label
+      htmlFor={id}
+      aria-disabled={disabled}
+      className={`group flex w-full items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white/70 p-4 shadow-sm transition ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-200'
       } ${className}`}
     >
-      <input
-        type="checkbox"
-        id={id}
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:bg-gray-100 disabled:border-gray-200 disabled:cursor-not-allowed"
-      />
-      <label htmlFor={id} className={`ml-2 text-sm font-medium ${disabled ? 'text-gray-400' : 'text-gray-700'} select-none`}>
-        {label}
-      </label>
-    </div>
+      <div className="min-w-0">
+        <p className={`text-sm font-semibold ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{label}</p>
+        {description && (
+          <p className="mt-1 text-xs text-gray-500">
+            {description}
+          </p>
+        )}
+      </div>
+      <div
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center justify-center rounded-full transition ${
+          disabled ? 'cursor-not-allowed' : 'cursor-pointer group-hover:scale-[1.02]'
+        }`}
+      >
+        <input
+          type="checkbox"
+          id={id}
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+          className="peer sr-only"
+        />
+        <span
+          className="absolute h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-blue-500 peer-focus:ring-4 peer-focus:ring-blue-200"
+          aria-hidden="true"
+        ></span>
+        <span
+          className="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5"
+          aria-hidden="true"
+        ></span>
+      </div>
+    </label>
   );
 }
 
@@ -259,12 +280,13 @@ function EventCard(props, ref) {
             onChange={(e) => handleChange('endTime', e.target.value)}
             disabled={currentEvent.allDay || false}
           />
-          <CheckboxInput
+          <ToggleInput
             id={`allDay-${eventId}`}
-            label="All Day Event"
+            label="All-day event"
             checked={currentEvent.allDay || false}
             onChange={(e) => handleChange('allDay', e.target.checked)}
-            className="md:mt-8"
+            description="Blocks out start and end times for the full day."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`numberOfGuests-${eventId}`}
@@ -312,12 +334,13 @@ function EventCard(props, ref) {
             min="0"
             step="0.01"
           />
-          <CheckboxInput
+          <ToggleInput
             id={`downPaymentReceived-${eventId}`}
-            label="Down Payment Received"
+            label="Deposit received"
             checked={currentEvent.downPaymentReceived || false}
             onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-            className="md:mt-8"
+            description="Keep track of when the initial payment arrives."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`downPaymentReceivedDate-${eventId}`}
@@ -358,13 +381,13 @@ function EventCard(props, ref) {
             min="0"
             step="0.01"
           />
-          <div className="md:col-span-1" aria-hidden="true"></div>
-          <CheckboxInput
+          <ToggleInput
             id={`finalPaymentReceived-${eventId}`}
-            label="Final Payment Received"
+            label="Final payment received"
             checked={currentEvent.finalPaymentReceived || false}
             onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-            className="md:mt-8"
+            description="Confirm when the closing balance has been paid."
+            className="md:col-span-2"
           />
           <LabeledInput
             id={`finalPaymentReceivedDate-${eventId}`}

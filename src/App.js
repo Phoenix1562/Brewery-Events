@@ -285,8 +285,8 @@ function App() {
                   className="mt-6 rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
                   style={{ width: '100%' }}
                 >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                       <button
                         onClick={() => {
                           if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
@@ -296,7 +296,7 @@ function App() {
                             setActiveEvent(null);
                           }
                         }}
-                        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600 shadow-sm"
+                        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-600"
                       >
                         Save & Close
                       </button>
@@ -326,7 +326,7 @@ function App() {
                       )}
                     </div>
 
-                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                    <div className="flex items-center justify-center gap-3">
                       <button
                         onClick={() => deleteEvent(activeEvent.id)}
                         className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
