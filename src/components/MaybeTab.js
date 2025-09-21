@@ -1,25 +1,25 @@
 // components/MaybeTab.js
 import React from 'react';
 import EventPreviewCard from './EventPreviewCard';
+import TabHeader from './TabHeader';
 import { PlusCircle, Calendar, Clock } from 'lucide-react';
 
 function MaybeTab({ events, addEvent, onSelectEvent }) {
   return (
     <div className="p-6 bg-white rounded-lg shadow-sm">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <Clock className="h-6 w-6 text-amber-500 mr-2" />
-          <h2 className="text-2xl font-bold text-gray-800">Pending Events</h2>
-        </div>
-        
-        <button
-          onClick={addEvent}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span>New Event</span>
-        </button>
-      </div>
+      <TabHeader
+        icon={<Clock className="h-7 w-7 text-amber-500" />}
+        title="Pending Events"
+        actions={
+          <button
+            onClick={addEvent}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <PlusCircle className="h-5 w-5" />
+            <span>New Event</span>
+          </button>
+        }
+      />
       
       {/* Counter badge */}
       {events.length > 0 && (

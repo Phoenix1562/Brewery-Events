@@ -304,7 +304,11 @@ function App() {
                       onClick={() => handleMoveRightEvent(activeEvent.id)}
                       className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
                     >
-                      Move Right &rarr;
+                      {activeEvent.status === 'maybe'
+                        ? 'Move to Upcoming Events →'
+                        : activeEvent.status === 'upcoming'
+                          ? 'Move to Finished Events →'
+                          : 'Move Right →'}
                     </button>
                   )}
                   {activeEvent.status !== 'maybe' && ( // Conditionally show Move Left
@@ -312,7 +316,11 @@ function App() {
                       onClick={() => handleMoveLeftEvent(activeEvent.id)}
                       className="bg-blue-500 text-white w-full px-4 py-2 rounded text-sm hover:bg-blue-600 transition"
                     >
-                      &larr; Move Left
+                      {activeEvent.status === 'upcoming'
+                        ? '← Move to Pending Events'
+                        : activeEvent.status === 'finished'
+                          ? '← Move to Upcoming Events'
+                          : '← Move Left'}
                     </button>
                   )}
                   <button

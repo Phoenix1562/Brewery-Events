@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { CalendarDays } from 'lucide-react';
 import { db } from '../firebase'; // Assuming this is how you import Firebase
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // Assuming SidePanel and EventCard are in the same components directory or adjust path
-import SidePanel from './SidePanel'; 
-import EventCard from './EventCard';   
+import SidePanel from './SidePanel';
+import EventCard from './EventCard';
+import TabHeader from './TabHeader';
 
 // Helper: Format Date as YYYY-MM-DD using local time
 const formatDate = (date) => {
@@ -282,8 +284,19 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
   return (
     <div className="p-4 relative w-full zoom-90">
       <div className="laptop:transform laptop:scale-[0.99] laptop:origin-top">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Calendar</h2>
-      
+      <TabHeader
+        icon={<CalendarDays className="h-7 w-7 text-blue-600" />}
+        title="Calendar"
+        actions={
+          <button
+            className="bg-green-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 whitespace-nowrap transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+            onClick={() => openNoteModalForAdd(new Date())}
+          >
+            Add Calendar Note
+          </button>
+        }
+      />
+
       <div className="flex flex-wrap items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg gap-4 shadow">
         <div className="flex items-center mr-4 flex-shrink-0">
           <input
@@ -305,12 +318,6 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
              <span className="text-sm text-gray-700 select-none">Weekly</span>
           </label>
         </div>
-        <button
-          className="bg-green-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 whitespace-nowrap transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
-          onClick={() => openNoteModalForAdd(new Date())}
-        >
-          Add Calendar Note
-        </button>
       </div>
 
       <div className="flex justify-between items-center mb-4">

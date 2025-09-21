@@ -1,6 +1,7 @@
 // components/FinishedTab.js
 import React, { useMemo, useState, useEffect } from 'react';
 import EventPreviewCard from './EventPreviewCard';
+import TabHeader from './TabHeader';
 import { Calendar, Filter, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 
 function FinishedTab({ events, onSelectEvent }) {
@@ -129,20 +130,19 @@ function FinishedTab({ events, onSelectEvent }) {
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm">
       {/* Header with filter toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
-          <h2 className="text-xl font-bold text-gray-800">Finished Events</h2>
-        </div>
-        
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-1 px-2 py-1 text-sm bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
-        >
-          <Filter className="h-4 w-4" />
-          <span>{showFilters ? 'Hide Filters' : 'Filters'}</span>
-        </button>
-      </div>
+      <TabHeader
+        icon={<Calendar className="h-7 w-7 text-indigo-600" />}
+        title="Finished Events"
+        actions={
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-1 px-2 py-1 text-sm bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+          >
+            <Filter className="h-4 w-4" />
+            <span>{showFilters ? 'Hide Filters' : 'Filters'}</span>
+          </button>
+        }
+      />
 
       {/* Compact search bar */}
       <div className="mb-4">
