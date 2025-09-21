@@ -1,5 +1,5 @@
 // components/FinishedTab.js
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import EventPreviewCard from './EventPreviewCard';
 import TabHeader from './TabHeader';
 import { Calendar, Filter, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
@@ -17,6 +17,7 @@ function FinishedTab({ events, onSelectEvent }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [expandedYears, setExpandedYears] = useState({});
+  const [expandedMonths, setExpandedMonths] = useState({});
 
   // Available filter options
   const availableYears = useMemo(() => {
@@ -102,19 +103,25 @@ function FinishedTab({ events, onSelectEvent }) {
     return { groups, count: filtered.length };
   }, [finishedEvents, filterMode, selectedYear, selectedMonth, startDate, endDate, searchQuery]);
 
-  // Initialize expanded state for the most recent year
-  useEffect(() => {
-    if (availableYears.length > 0 && Object.keys(expandedYears).length === 0) {
-      setExpandedYears({ [availableYears[0]]: true });
-    }
-  }, [availableYears, expandedYears]);
-
   // Toggle year expansion
   const toggleYearExpand = (year) => {
     setExpandedYears(prev => ({
       ...prev,
       [year]: !prev[year]
     }));
+  };
+
+  const toggleMonthExpand = (year, month) => {
+    setExpandedMonths(prev => {
+      const yearState = prev[year] || {};
+      return {
+        ...prev,
+        [year]: {
+          ...yearState,
+          [month]: !yearState[month]
+        }
+      };
+    });
   };
 
   // Clear all filters
@@ -307,25 +314,44 @@ function FinishedTab({ events, onSelectEvent }) {
               </button>
               
               {expandedYears[year] && (
-                <div className="p-2">
+                <div className="p-2 space-y-2">
                   {Object.keys(groupedEvents.groups[year])
                     .sort((a, b) => b - a) // Sort months newest first
-                    .map(month => (
-                      <div key={`${year}-${month}`} className="mb-3 last:mb-0">
-                        <h4 className="font-medium text-sm text-gray-700 mb-2 pb-1 border-b">
-                          {monthNames[month]} {year}
-                        </h4>
-                        <div className="space-y-2">
-                          {groupedEvents.groups[year][month].map(event => (
-                            <EventPreviewCard
-                              key={event.id}
-                              event={event}
-                              onClick={() => onSelectEvent(event)}
-                            />
-                          ))}
+                    .map(month => {
+                      const monthIndex = Number(month);
+                      const eventsForMonth = groupedEvents.groups[year][month];
+                      const monthExpanded = expandedMonths[year]?.[month];
+                      const eventCountLabel = `${eventsForMonth.length} ${eventsForMonth.length === 1 ? 'event' : 'events'}`;
+                      return (
+                        <div key={`${year}-${month}`} className="border border-gray-200 rounded-md overflow-hidden bg-white">
+                          <button
+                            onClick={() => toggleMonthExpand(year, month)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="font-medium text-sm text-gray-700">{monthNames[monthIndex]} {year}</span>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <span className="mr-2">{eventCountLabel}</span>
+                              {monthExpanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </div>
+                          </button>
+                          {monthExpanded && (
+                            <div className="p-2 bg-gray-50 space-y-2">
+                              {eventsForMonth.map(event => (
+                                <EventPreviewCard
+                                  key={event.id}
+                                  event={event}
+                                  onClick={() => onSelectEvent(event)}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>

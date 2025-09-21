@@ -443,7 +443,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
             <div className="flex-grow overflow-y-auto pr-2 -mr-2 space-y-4">
               <div>
                 <h5 className="text-base font-semibold mb-2 text-gray-700">Notes</h5>
-                {infoModalContent.notes.length === 0 ? <p className="text-sm text-gray-500 italic">No notes for this day.</p> : (
+                {infoModalContent.notes.length > 0 && (
                   <ul className="space-y-2">
                     {infoModalContent.notes.map((note) => (
                       <li key={`modal-note-${note.id}`} className="flex justify-between items-start p-2 rounded border" style={{ backgroundColor: `${note.color}20` }}>
