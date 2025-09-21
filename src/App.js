@@ -286,7 +286,7 @@ function App() {
                   style={{ width: '100%' }}
                 >
                   <div className="flex flex-col gap-5">
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
                       <button
                         onClick={() => {
                           if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
