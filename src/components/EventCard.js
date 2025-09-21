@@ -435,11 +435,11 @@ function EventCard(props, ref) {
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h4>
             <label
               htmlFor={`fileUpload-${eventId}`}
-              className="relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white/80 p-6 text-sm text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/40"
+              className="relative flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 bg-white/80 p-3 text-xs text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/30"
             >
-              <Paperclip size={28} className="text-blue-400" />
-              <span className="font-medium text-blue-600">Upload or drop files here</span>
-              <span className="text-xs text-gray-500">
+              <Paperclip size={20} className="text-blue-400" />
+              <span className="font-medium text-blue-600 text-sm">Upload or drop files</span>
+              <span className="text-[11px] text-gray-500 text-center">
                 Share contracts, layouts, or any helpful documents.
               </span>
               <input

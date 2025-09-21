@@ -4,9 +4,6 @@ import { CalendarDays } from 'lucide-react';
 import { db } from '../firebase'; // Assuming this is how you import Firebase
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
-// Assuming SidePanel and EventCard are in the same components directory or adjust path
-import SidePanel from './SidePanel';
-import EventCard from './EventCard';
 import TabHeader from './TabHeader';
 
 // Helper: Format Date as YYYY-MM-DD using local time
@@ -37,7 +34,7 @@ const formatTime12Hour = (time) => {
 };
 
 
-function CalendarTab({ events = [], onEventClick, onEventUpdate }) { 
+function CalendarTab({ events = [], onEventClick }) {
   const [includePending, setIncludePending] = useState(() => {
     const stored = localStorage.getItem('calendarIncludePending');
     return stored ? stored === 'true' : false;
@@ -58,10 +55,6 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
     color: '#4299e1',
     date: '',
   });
-
-  // State for Event Card in SidePanel (from your uploaded version)
-  const [selectedEventForPanel, setSelectedEventForPanel] = useState(null);
-  const [isEventPanelOpen, setIsEventPanelOpen] = useState(false);
 
   const todayStr = useMemo(() => formatDate(new Date()), []);
 
@@ -122,7 +115,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
      });
   };
 
-  const openInfoModalForDate = useCallback((date, dayEvents, dayNotes) => {
+  const openInfoModalForDate = useCallback((date, _dayEvents, dayNotes) => {
     // Pass ALL events for that day to the info modal, not just the filtered ones for cell display
     const allEventsForDay = events.filter(e => e.eventDate === formatDate(date));
     setInfoModalContent({ date, events: allEventsForDay, notes: dayNotes });
@@ -187,50 +180,6 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
     }
   };
   
-  // --- Event Panel Handlers (from your uploaded version) ---
-  const handleOpenEventPanel = (event) => {
-    setSelectedEventForPanel(event);
-    setIsEventPanelOpen(true);
-    setInfoModalOpen(false); // Close info modal if it's open
-    // The onEventClick prop from App.js is primarily for App.js's own SidePanel.
-    // If CalendarTab opens its own panel, we might not need to call it,
-    // or call it only if it's not the one that sets App.js's activeEvent.
-    // For now, assuming onEventClick might be used for other logging or actions by App.js
-    // but not to open App.js's main panel if CalendarTab is handling its own.
-    if (onEventClick && typeof onEventClick === 'function') {
-        // A more robust check might be needed if onEventClick's sole purpose is to open App.js's panel
-        // For example, if onEventClick is always `(event) => setActiveEvent(event)` from App.js,
-        // then calling it here would be redundant or conflicting.
-        // If it has other side effects, it's fine.
-        // onEventClick(event); // Commenting out for now to avoid potential double panel opening
-    }
-  };
-
-  const handleCloseEventPanel = () => {
-    setIsEventPanelOpen(false);
-    setSelectedEventForPanel(null);
-  };
-
-  const handleSaveEventInPanel = async (updatedEvent) => {
-    if (onEventUpdate) { // This prop should be passed from App.js
-      try {
-        await onEventUpdate(updatedEvent); 
-        setSelectedEventForPanel(updatedEvent); // Update event in panel
-        // Optionally, provide feedback to the user
-        // alert("Event saved successfully!");
-      } catch (error) {
-        console.error("Failed to save event from CalendarTab's panel:", error);
-        alert("Failed to save event. See console for details.");
-      }
-    } else {
-      console.warn("CalendarTab: onEventUpdate prop not provided. Cannot save event changes from its panel.");
-      // alert("Save functionality is not fully configured (onEventUpdate missing).");
-    }
-    // Decide whether to close panel on save or keep it open
-    // handleCloseEventPanel(); 
-  };
-
-
   const weeks = useMemo(() => {
     const weeksArray = [];
     const year = currentDate.getFullYear();
@@ -415,7 +364,10 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
                               key={`event-${event.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenEventPanel(event); // This opens CalendarTab's own panel
+                                openInfoModalForDate(day, eventsForCellDisplay, notesForDay);
+                                if (onEventClick && typeof onEventClick === 'function') {
+                                  onEventClick(event);
+                                }
                               }}
                               className="bg-blue-500 text-white text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded overflow-hidden whitespace-nowrap truncate block w-full text-left focus:outline-none focus:ring-1 focus:ring-blue-300 hover:bg-blue-600 transition-opacity"
                               title={`${event.eventName || 'Unnamed'} ${timeStr ? `[${timeStr}]` : ''}`}
@@ -472,10 +424,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
                           {event.clientName && <div className="text-xs text-gray-600 mt-0.5">Client: {event.clientName}</div>}
                           <div className="text-xs text-gray-600 mt-0.5">Time: {timeStr}</div>
                           {event.buildingArea && <div className="text-xs text-gray-600 mt-0.5">Area: {event.buildingArea}</div>}
-                          <button
-                            onClick={() => { setInfoModalOpen(false); handleOpenEventPanel(event); }} // Opens CalendarTab's panel
-                            className="text-xs text-blue-600 hover:underline mt-1.5 font-medium"
-                          >View Full Details / Edit</button>
+                          <p className="text-xs text-gray-500 mt-1">To edit, open this event from the main events tabs.</p>
                         </li>
                       );
                     })}
@@ -531,22 +480,6 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
           </div>
         </div>,
         document.body
-      )}
-
-      {/* Side Panel for Event Card (from your uploaded version) */}
-      {isEventPanelOpen && selectedEventForPanel && (
-        <SidePanel
-          isOpen={isEventPanelOpen}
-          onClose={handleCloseEventPanel}
-          title={`Event Details: ${selectedEventForPanel.eventName || 'Unnamed Event'}`}
-        >
-          <EventCard
-            event={selectedEventForPanel}
-            onSave={handleSaveEventInPanel} // This should call App.js's update logic
-            setActiveEvent={handleCloseEventPanel} // Allows EventCard's close to close this panel
-            hideActions={false} // Assuming EventCard might have its own save/actions for this panel
-          />
-        </SidePanel>
       )}
       </div>
     </div>

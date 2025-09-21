@@ -210,14 +210,11 @@ function App() {
       case 'statistics':
         return <StatisticsTab events={events} />; // StatisticsTab uses all events
       case 'calendar':
-        // CalendarTab now uses its own SidePanel as per previous modifications to CalendarTab.js
-        // It needs all events, not filtered ones.
-        // It needs onEventUpdate to save changes from its internal EventCard.
-        // onEventClick is passed to prevent App.js's main panel from opening due to a calendar click.
+        // CalendarTab presents a calendar view of every event without enabling in-place editing.
+        // It still needs the unfiltered events array and exposes onEventClick for optional logging hooks.
         return (
           <CalendarTab
             events={events}
-            onEventUpdate={saveEvent}
             onEventClick={(calendarClickedEvent) => {
               // This callback is for the onEventClick prop in CalendarTab.
               // Since CalendarTab is now designed to open its own panel,
