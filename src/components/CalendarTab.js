@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays } from 'lucide-react';
 import { db } from '../firebase'; // Assuming this is how you import Firebase
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
-// Assuming SidePanel and EventCard are in the same components directory or adjust path
 import SidePanel from './SidePanel';
 import EventCard from './EventCard';
 import TabHeader from './TabHeader';
@@ -37,7 +36,7 @@ const formatTime12Hour = (time) => {
 };
 
 
-function CalendarTab({ events = [], onEventClick, onEventUpdate }) { 
+function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
   const [includePending, setIncludePending] = useState(() => {
     const stored = localStorage.getItem('calendarIncludePending');
     return stored ? stored === 'true' : false;
@@ -59,9 +58,9 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
     date: '',
   });
 
-  // State for Event Card in SidePanel (from your uploaded version)
   const [selectedEventForPanel, setSelectedEventForPanel] = useState(null);
   const [isEventPanelOpen, setIsEventPanelOpen] = useState(false);
+  const eventCardRef = useRef(null);
 
   const todayStr = useMemo(() => formatDate(new Date()), []);
 
@@ -122,7 +121,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
      });
   };
 
-  const openInfoModalForDate = useCallback((date, dayEvents, dayNotes) => {
+  const openInfoModalForDate = useCallback((date, _dayEvents, dayNotes) => {
     // Pass ALL events for that day to the info modal, not just the filtered ones for cell display
     const allEventsForDay = events.filter(e => e.eventDate === formatDate(date));
     setInfoModalContent({ date, events: allEventsForDay, notes: dayNotes });
@@ -186,51 +185,68 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
       alert("Failed to delete note. Check console for details.");
     }
   };
-  
-  // --- Event Panel Handlers (from your uploaded version) ---
-  const handleOpenEventPanel = (event) => {
-    setSelectedEventForPanel(event);
-    setIsEventPanelOpen(true);
-    setInfoModalOpen(false); // Close info modal if it's open
-    // The onEventClick prop from App.js is primarily for App.js's own SidePanel.
-    // If CalendarTab opens its own panel, we might not need to call it,
-    // or call it only if it's not the one that sets App.js's activeEvent.
-    // For now, assuming onEventClick might be used for other logging or actions by App.js
-    // but not to open App.js's main panel if CalendarTab is handling its own.
-    if (onEventClick && typeof onEventClick === 'function') {
-        // A more robust check might be needed if onEventClick's sole purpose is to open App.js's panel
-        // For example, if onEventClick is always `(event) => setActiveEvent(event)` from App.js,
-        // then calling it here would be redundant or conflicting.
-        // If it has other side effects, it's fine.
-        // onEventClick(event); // Commenting out for now to avoid potential double panel opening
-    }
-  };
 
-  const handleCloseEventPanel = () => {
+  const handleCloseEventPanel = useCallback(() => {
     setIsEventPanelOpen(false);
     setSelectedEventForPanel(null);
-  };
+  }, []);
 
-  const handleSaveEventInPanel = async (updatedEvent) => {
-    if (onEventUpdate) { // This prop should be passed from App.js
-      try {
-        await onEventUpdate(updatedEvent); 
-        setSelectedEventForPanel(updatedEvent); // Update event in panel
-        // Optionally, provide feedback to the user
-        // alert("Event saved successfully!");
-      } catch (error) {
-        console.error("Failed to save event from CalendarTab's panel:", error);
-        alert("Failed to save event. See console for details.");
-      }
+  const handleEventCardSetActive = useCallback((value) => {
+    if (value) {
+      setSelectedEventForPanel(value);
+      setIsEventPanelOpen(true);
     } else {
-      console.warn("CalendarTab: onEventUpdate prop not provided. Cannot save event changes from its panel.");
-      // alert("Save functionality is not fully configured (onEventUpdate missing).");
+      handleCloseEventPanel();
     }
-    // Decide whether to close panel on save or keep it open
-    // handleCloseEventPanel(); 
-  };
+  }, [handleCloseEventPanel]);
 
+  const handlePanelCloseRequest = useCallback(() => {
+    if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+      eventCardRef.current.handleClose();
+    } else {
+      handleCloseEventPanel();
+    }
+  }, [handleCloseEventPanel]);
 
+  const handleOpenEventPanel = useCallback((eventData) => {
+    if (!eventData) return;
+    setSelectedEventForPanel(eventData);
+    setIsEventPanelOpen(true);
+    setInfoModalOpen(false);
+    if (onEventClick && typeof onEventClick === 'function') {
+      onEventClick(eventData);
+    }
+  }, [onEventClick]);
+
+  const handleSaveEventInPanel = useCallback(async (updatedEvent) => {
+    if (!onEventUpdate) {
+      console.warn('CalendarTab: onEventUpdate prop not provided. Cannot persist event changes.');
+      return;
+    }
+
+    try {
+      await onEventUpdate(updatedEvent);
+      setSelectedEventForPanel(updatedEvent);
+    } catch (error) {
+      console.error('Failed to save event from CalendarTab side panel:', error);
+      alert('Failed to save event. Please try again.');
+    }
+  }, [onEventUpdate]);
+
+  useEffect(() => {
+    if (!selectedEventForPanel) return;
+
+    const latest = events.find(evt => evt.id === selectedEventForPanel.id);
+    if (!latest) {
+      handleCloseEventPanel();
+      return;
+    }
+
+    if (latest !== selectedEventForPanel) {
+      setSelectedEventForPanel(latest);
+    }
+  }, [events, selectedEventForPanel, handleCloseEventPanel]);
+  
   const weeks = useMemo(() => {
     const weeksArray = [];
     const year = currentDate.getFullYear();
@@ -415,7 +431,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
                               key={`event-${event.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenEventPanel(event); // This opens CalendarTab's own panel
+                                handleOpenEventPanel(event);
                               }}
                               className="bg-blue-500 text-white text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded overflow-hidden whitespace-nowrap truncate block w-full text-left focus:outline-none focus:ring-1 focus:ring-blue-300 hover:bg-blue-600 transition-opacity"
                               title={`${event.eventName || 'Unnamed'} ${timeStr ? `[${timeStr}]` : ''}`}
@@ -473,9 +489,11 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
                           <div className="text-xs text-gray-600 mt-0.5">Time: {timeStr}</div>
                           {event.buildingArea && <div className="text-xs text-gray-600 mt-0.5">Area: {event.buildingArea}</div>}
                           <button
-                            onClick={() => { setInfoModalOpen(false); handleOpenEventPanel(event); }} // Opens CalendarTab's panel
+                            onClick={() => handleOpenEventPanel(event)}
                             className="text-xs text-blue-600 hover:underline mt-1.5 font-medium"
-                          >View Full Details / Edit</button>
+                          >
+                            View Full Details / Edit
+                          </button>
                         </li>
                       );
                     })}
@@ -493,7 +511,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
       )}
 
       {/* Note Creation/Edit Modal (remains the same) */}
-      {noteModalOpen && createPortal( /* ... your existing Note Modal JSX ... */ 
+      {noteModalOpen && createPortal( /* ... your existing Note Modal JSX ... */
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={closeNoteModal}>
           <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md relative max-h-[90vh] flex flex-col transform scale-[0.9] laptop:scale-100 laptop:translate-x-0 sm:laptop:translate-x-24 origin-top" onClick={(e) => e.stopPropagation()}>
             <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">{newNote.id ? 'Edit Note' : 'Add Calendar Note'}</h4>
@@ -533,19 +551,34 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
         document.body
       )}
 
-      {/* Side Panel for Event Card (from your uploaded version) */}
       {isEventPanelOpen && selectedEventForPanel && (
         <SidePanel
           isOpen={isEventPanelOpen}
-          onClose={handleCloseEventPanel}
+          onClose={handlePanelCloseRequest}
           title={`Event Details: ${selectedEventForPanel.eventName || 'Unnamed Event'}`}
         >
           <EventCard
+            ref={eventCardRef}
             event={selectedEventForPanel}
-            onSave={handleSaveEventInPanel} // This should call App.js's update logic
-            setActiveEvent={handleCloseEventPanel} // Allows EventCard's close to close this panel
-            hideActions={false} // Assuming EventCard might have its own save/actions for this panel
+            onSave={handleSaveEventInPanel}
+            setActiveEvent={handleEventCardSetActive}
           />
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => eventCardRef.current && typeof eventCardRef.current.triggerSave === 'function' && eventCardRef.current.triggerSave()}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={handlePanelCloseRequest}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            >
+              Save &amp; Close
+            </button>
+          </div>
         </SidePanel>
       )}
       </div>

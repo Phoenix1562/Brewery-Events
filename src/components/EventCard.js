@@ -435,12 +435,14 @@ function EventCard(props, ref) {
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h4>
             <label
               htmlFor={`fileUpload-${eventId}`}
-              className="relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white/80 p-6 text-sm text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/40"
+              className="relative flex w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2 text-[11px] text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-500/30"
             >
-              <Paperclip size={28} className="text-blue-400" />
-              <span className="font-medium text-blue-600">Upload or drop files here</span>
-              <span className="text-xs text-gray-500">
-                Share contracts, layouts, or any helpful documents.
+              <span className="flex items-center gap-1.5 text-blue-600 text-xs font-semibold">
+                <Paperclip size={16} className="text-blue-500" />
+                Add files
+              </span>
+              <span className="text-[10px] text-gray-500 leading-tight text-center">
+                Drag and drop or click to attach supporting docs.
               </span>
               <input
                 id={`fileUpload-${eventId}`}
@@ -452,7 +454,7 @@ function EventCard(props, ref) {
             </label>
 
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50/80 p-4">
+              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
                 <p className="text-sm font-medium text-gray-600 mb-3">Uploaded files</p>
                 <ul className="space-y-2">
                   {currentEvent.files.map((file, index) => (
