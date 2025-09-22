@@ -31,7 +31,7 @@ function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:px-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -47,14 +47,14 @@ function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
           />
 
           <motion.div
-            className="relative z-10 w-full max-w-6xl overflow-hidden rounded-3xl border border-white/30 bg-white/95 shadow-2xl"
+            className="relative z-10 w-full max-w-7xl overflow-hidden rounded-[34px] border border-white/40 bg-white/95 shadow-2xl"
             initial={{ opacity: 0, y: 40, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 220, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-gray-100/80 bg-white/80 px-6 py-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100/80 bg-white/85 px-8 py-5 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
               <button
                 onClick={handleClose}
@@ -65,8 +65,8 @@ function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
               </button>
             </div>
 
-            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50">
-              <div className="w-full px-6 py-6 md:px-8 md:py-8">
+            <div className="max-h-[calc(100vh-6rem)] overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50">
+              <div className="w-full px-8 py-7 md:px-10 md:py-9 lg:px-12 lg:py-10">
                 {children}
               </div>
             </div>

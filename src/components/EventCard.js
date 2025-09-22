@@ -205,10 +205,10 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="grid gap-6 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
-      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm">
-        <header className="mb-6 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+    <div className="grid items-start gap-7 md:auto-rows-fr md:grid-cols-2 lg:gap-8 lg:grid-cols-3 xl:grid-cols-[1.18fr_1.18fr_0.98fr]">
+      <section className="flex h-full flex-col rounded-[28px] border border-gray-100 bg-white/95 p-6 shadow-md md:p-7 xl:p-8">
+        <header className="mb-7 flex items-center gap-4">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
             <Info size={20} />
           </span>
           <div>
@@ -218,7 +218,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 xl:grid-cols-2">
+        <div className="grid flex-1 grid-cols-1 gap-x-8 gap-y-6 lg:gap-y-7 xl:grid-cols-2">
           <LabeledInput
             id={`clientName-${eventId}`}
             label="Client Name"
@@ -301,9 +301,9 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm">
-        <header className="mb-6 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+      <section className="flex h-full flex-col rounded-[28px] border border-gray-100 bg-white/95 p-6 shadow-md md:p-7 xl:p-8">
+        <header className="mb-7 flex items-center gap-4">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
             <DollarSign size={20} />
           </span>
           <div>
@@ -313,7 +313,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 xl:grid-cols-2">
+        <div className="grid flex-1 grid-cols-1 gap-x-8 gap-y-6 lg:gap-y-7 xl:grid-cols-2">
           <LabeledInput
             id={`priceGiven-${eventId}`}
             label="Price Given ($)"
@@ -401,9 +401,9 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm md:col-span-2 lg:col-span-1">
-        <header className="mb-6 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600">
+      <section className="flex h-full flex-col rounded-[28px] border border-gray-100 bg-white/95 p-6 shadow-md md:col-span-2 md:p-7 lg:col-span-1 xl:p-8">
+        <header className="mb-7 flex items-center gap-4">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-50 text-purple-600">
             <FileText size={20} />
           </span>
           <div>
@@ -413,7 +413,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-5">
+        <div className="flex flex-1 flex-col gap-6">
           <div className="flex flex-1 flex-col">
             <label
               htmlFor={`notes-${eventId}`}
@@ -427,7 +427,7 @@ function EventCard(props, ref) {
               placeholder="Add additional details, client requests, or internal notes..."
               value={currentEvent.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="min-h-[160px] w-full flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300"
+              className="min-h-[170px] w-full flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300"
               rows="3"
             ></textarea>
           </div>
@@ -454,9 +454,9 @@ function EventCard(props, ref) {
             </label>
 
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="mt-3 max-h-52 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
+              <div className="mt-4 max-h-56 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/80 p-4">
                 <p className="mb-3 text-sm font-medium text-gray-600">Uploaded files</p>
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {currentEvent.files.map((file, index) => (
                     <li
                       key={index}
