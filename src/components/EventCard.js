@@ -205,9 +205,9 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
+    <div className="grid gap-6 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
+      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm">
+        <header className="mb-6 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
             <Info size={20} />
           </span>
@@ -218,7 +218,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+        <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 xl:grid-cols-2">
           <LabeledInput
             id={`clientName-${eventId}`}
             label="Client Name"
@@ -286,7 +286,7 @@ function EventCard(props, ref) {
             checked={currentEvent.allDay || false}
             onChange={(e) => handleChange('allDay', e.target.checked)}
             description="Blocks out start and end times for the full day."
-            className="md:col-span-2"
+            className="xl:col-span-2"
           />
           <LabeledInput
             id={`numberOfGuests-${eventId}`}
@@ -301,8 +301,8 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
+      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm">
+        <header className="mb-6 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
             <DollarSign size={20} />
           </span>
@@ -313,7 +313,7 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+        <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 xl:grid-cols-2">
           <LabeledInput
             id={`priceGiven-${eventId}`}
             label="Price Given ($)"
@@ -340,7 +340,7 @@ function EventCard(props, ref) {
             checked={currentEvent.downPaymentReceived || false}
             onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
             description="Keep track of when the initial payment arrives."
-            className="md:col-span-2"
+            className="xl:col-span-2"
           />
           <LabeledInput
             id={`downPaymentReceivedDate-${eventId}`}
@@ -387,7 +387,7 @@ function EventCard(props, ref) {
             checked={currentEvent.finalPaymentReceived || false}
             onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
             description="Confirm when the closing balance has been paid."
-            className="md:col-span-2"
+            className="xl:col-span-2"
           />
           <LabeledInput
             id={`finalPaymentReceivedDate-${eventId}`}
@@ -401,8 +401,8 @@ function EventCard(props, ref) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
+      <section className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm md:col-span-2 lg:col-span-1">
+        <header className="mb-6 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600">
             <FileText size={20} />
           </span>
@@ -413,8 +413,8 @@ function EventCard(props, ref) {
             </p>
           </div>
         </header>
-        <div className="space-y-5">
-          <div>
+        <div className="flex flex-1 flex-col gap-5">
+          <div className="flex flex-1 flex-col">
             <label
               htmlFor={`notes-${eventId}`}
               className="mb-2 block text-sm font-semibold text-gray-700"
@@ -427,12 +427,12 @@ function EventCard(props, ref) {
               placeholder="Add additional details, client requests, or internal notes..."
               value={currentEvent.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300 min-h-[96px] resize-none"
+              className="min-h-[160px] w-full flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300"
               rows="3"
             ></textarea>
           </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h4>
+          <div className="flex flex-col">
+            <h4 className="mb-3 text-sm font-semibold text-gray-700">Attachments</h4>
             <label
               htmlFor={`fileUpload-${eventId}`}
               className="relative flex w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2 text-[11px] text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-500/30"
@@ -454,8 +454,8 @@ function EventCard(props, ref) {
             </label>
 
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
-                <p className="text-sm font-medium text-gray-600 mb-3">Uploaded files</p>
+              <div className="mt-3 max-h-52 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
+                <p className="mb-3 text-sm font-medium text-gray-600">Uploaded files</p>
                 <ul className="space-y-2">
                   {currentEvent.files.map((file, index) => (
                     <li

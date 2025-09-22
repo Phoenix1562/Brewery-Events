@@ -5,78 +5,73 @@ import { X } from 'lucide-react'; // Import X icon from lucide-react
 
 function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
   const [isVisible, setIsVisible] = useState(isOpen);
-  
-  // Handle open/close states
+
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      // Prevent scrolling on the body when the panel is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
+      setIsVisible(false);
     }
-    
-    // Cleanup: restore scrolling on unmount
+
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isOpen]);
 
-  // Handle the close with animation
   const handleClose = () => {
     setIsVisible(false);
-    // Call onClose only after animation completes
     setTimeout(() => {
       onClose();
-    }, 300); // Make sure this duration matches your animation timing
+    }, 280);
   };
 
   return (
     <AnimatePresence>
       {isVisible && (
-        <>
-          {/* Backdrop with blur effect */}
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <motion.div
-  className="fixed inset-0 bg-black/50 z-40"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  exit={{ opacity: 0 }}
-  onClick={handleClose}
-/>
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={handleClose}
+          />
 
-          {/* Side Panel */}
           <motion.div
-            className="fixed top-0 right-0 h-full max-w-full w-full md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[45%] bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ 
-              type: 'spring', 
-              stiffness: 300, 
-              damping: 30,
-              duration: 0.3
-            }}
+            className="relative z-10 w-full max-w-6xl overflow-hidden rounded-3xl border border-white/30 bg-white/95 shadow-2xl"
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 bg-white/80 px-6 py-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100/80 bg-white/80 px-6 py-4 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
               <button
                 onClick={handleClose}
-                className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100"
                 aria-label="Close panel"
               >
                 <X size={24} />
               </button>
             </div>
 
-            {/* Content - scrollable area */}
-            <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50">
-              <div className="mx-auto w-full max-w-3xl p-6 md:p-8">
+            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50">
+              <div className="w-full px-6 py-6 md:px-8 md:py-8">
                 {children}
               </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
