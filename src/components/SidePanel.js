@@ -1,82 +1,77 @@
 // src/components/SidePanel.js
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react'; // Import X icon from lucide-react
+import { X } from 'lucide-react';
 
 function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
   const [isVisible, setIsVisible] = useState(isOpen);
-  
-  // Handle open/close states
+
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      // Prevent scrolling on the body when the panel is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-    
-    // Cleanup: restore scrolling on unmount
+
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isOpen]);
 
-  // Handle the close with animation
   const handleClose = () => {
     setIsVisible(false);
-    // Call onClose only after animation completes
     setTimeout(() => {
       onClose();
-    }, 300); // Make sure this duration matches your animation timing
+    }, 280);
   };
 
   return (
     <AnimatePresence>
       {isVisible && (
-        <>
-          {/* Backdrop with blur effect */}
+        <motion.div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <motion.div
-  className="fixed inset-0 bg-black/50 z-40"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  exit={{ opacity: 0 }}
-  onClick={handleClose}
-/>
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+          />
 
-          {/* Side Panel */}
           <motion.div
-            className="fixed top-0 right-0 h-full max-w-full w-full md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[45%] bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ 
-              type: 'spring', 
-              stiffness: 300, 
-              damping: 30,
-              duration: 0.3
-            }}
+            className="relative z-10 flex h-full w-full max-h-[calc(100vh-3rem)] max-w-6xl flex-col overflow-hidden rounded-3xl bg-white/95 shadow-2xl ring-1 ring-black/5"
+            initial={{ y: 40, opacity: 0, scale: 0.96 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 40, opacity: 0, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 26, duration: 0.28 }}
+            onClick={(event) => event.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 bg-white/80 px-6 py-4 shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200/70 bg-white/70 px-6 py-5">
+              <div>
+                <p className="text-sm font-medium uppercase tracking-wide text-slate-400">Currently viewing</p>
+                <h2 className="mt-1 text-2xl font-semibold text-slate-800">{title}</h2>
+              </div>
               <button
                 onClick={handleClose}
-                className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Close panel"
               >
-                <X size={24} />
+                <X size={22} />
               </button>
             </div>
 
-            {/* Content - scrollable area */}
-            <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50">
-              <div className="mx-auto w-full max-w-3xl p-6 md:p-8">
+            <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-white to-slate-100/60">
+              <div className="mx-auto w-full max-w-5xl p-6 sm:p-8 lg:p-10">
                 {children}
               </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

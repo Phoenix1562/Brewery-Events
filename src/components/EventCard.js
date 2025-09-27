@@ -205,221 +205,249 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-            <Info size={20} />
-          </span>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">Event Details</h3>
-            <p className="text-sm text-gray-500">
-              Key information about when and where the event takes place.
-            </p>
+    <div className="space-y-8 text-slate-700">
+      <div className="grid gap-6 xl:grid-cols-3">
+        <section className="xl:col-span-2 rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <Info size={22} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Event overview</h3>
+              <p className="text-sm text-slate-500">Capture the essential details for this booking.</p>
+            </div>
+          </header>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <LabeledInput
+              id={`clientName-${eventId}`}
+              label="Client Name"
+              type="text"
+              value={currentEvent.clientName || ''}
+              onChange={(e) => handleChange('clientName', e.target.value)}
+              placeholder="Client's full name"
+            />
+            <LabeledInput
+              id={`eventName-${eventId}`}
+              label="Event Name"
+              type="text"
+              value={currentEvent.eventName || ''}
+              onChange={(e) => handleChange('eventName', e.target.value)}
+              placeholder="Brief name for the event"
+            />
+            <LabeledInput
+              id={`eventDate-${eventId}`}
+              label="Event Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.eventDate || ''}
+              onChange={(e) => handleChange('eventDate', e.target.value)}
+            />
+            <div>
+              <label
+                htmlFor={`buildingArea-${eventId}`}
+                className="mb-2 block text-sm font-semibold text-slate-700"
+              >
+                Building Area
+              </label>
+              <select
+                id={`buildingArea-${eventId}`}
+                value={currentEvent.buildingArea || ''}
+                onChange={(e) => handleChange('buildingArea', e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm shadow-sm transition-colors duration-150 ease-in-out focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/70 hover:border-slate-300"
+              >
+                <option value="">Select venue</option>
+                <option value="Brewhouse">Brewhouse</option>
+                <option value="Taphouse">Taphouse</option>
+                <option value="Hall">Hall</option>
+              </select>
+            </div>
           </div>
-        </header>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
-          <LabeledInput
-            id={`clientName-${eventId}`}
-            label="Client Name"
-            type="text"
-            value={currentEvent.clientName || ''}
-            onChange={(e) => handleChange('clientName', e.target.value)}
-            placeholder="Client's full name"
-          />
-          <LabeledInput
-            id={`eventName-${eventId}`}
-            label="Event Name"
-            type="text"
-            value={currentEvent.eventName || ''}
-            onChange={(e) => handleChange('eventName', e.target.value)}
-            placeholder="Brief name for the event"
-          />
-          <LabeledInput
-            id={`eventDate-${eventId}`}
-            label="Event Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.eventDate || ''}
-            onChange={(e) => handleChange('eventDate', e.target.value)}
-          />
-          <div>
-            <label
-              htmlFor={`buildingArea-${eventId}`}
-              className="mb-2 block text-sm font-semibold text-gray-700"
-            >
-              Building Area
-            </label>
-            <select
-              id={`buildingArea-${eventId}`}
-              value={currentEvent.buildingArea || ''}
-              onChange={(e) => handleChange('buildingArea', e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300"
-            >
-              <option value="">Select venue</option>
-              <option value="Brewhouse">Brewhouse</option>
-              <option value="Taphouse">Taphouse</option>
-              <option value="Hall">Hall</option>
-            </select>
-          </div>
-          <LabeledInput
-            id={`startTime-${eventId}`}
-            label="Start Time"
-            type="time"
-            icon={<Clock />}
-            value={currentEvent.startTime || ''}
-            onChange={(e) => handleChange('startTime', e.target.value)}
-            disabled={currentEvent.allDay || false}
-          />
-          <LabeledInput
-            id={`endTime-${eventId}`}
-            label="End Time"
-            type="time"
-            icon={<Clock />}
-            value={currentEvent.endTime || ''}
-            onChange={(e) => handleChange('endTime', e.target.value)}
-            disabled={currentEvent.allDay || false}
-          />
-          <ToggleInput
-            id={`allDay-${eventId}`}
-            label="All-day event"
-            checked={currentEvent.allDay || false}
-            onChange={(e) => handleChange('allDay', e.target.checked)}
-            description="Blocks out start and end times for the full day."
-            className="md:col-span-2"
-          />
-          <LabeledInput
-            id={`numberOfGuests-${eventId}`}
-            label="Number of Guests"
-            type="number"
-            icon={<Users />}
-            value={currentEvent.numberOfGuests || ''}
-            onChange={(e) => handleChange('numberOfGuests', e.target.value)}
-            placeholder="e.g., 50"
-            min="0"
-          />
-        </div>
-      </section>
+        </section>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-            <DollarSign size={20} />
-          </span>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">Payment Details</h3>
-            <p className="text-sm text-gray-500">
-              Track invoices, deposits, and outstanding balances at a glance.
-            </p>
+        <section className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-100/60 p-6 shadow-md ring-1 ring-blue-100">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+              <CalendarIcon size={20} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900">Schedule & guests</h3>
+              <p className="text-sm text-blue-700/70">Quickly configure the flow of the day.</p>
+            </div>
+          </header>
+          <div className="mt-6 space-y-4">
+            <ToggleInput
+              id={`allDay-${eventId}`}
+              label="All-day event"
+              checked={currentEvent.allDay || false}
+              onChange={(e) => handleChange('allDay', e.target.checked)}
+              description="Blocks out start and end times for the full day."
+              className="bg-white/70 shadow-sm"
+            />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <LabeledInput
+                id={`startTime-${eventId}`}
+                label="Start Time"
+                type="time"
+                icon={<Clock />}
+                value={currentEvent.startTime || ''}
+                onChange={(e) => handleChange('startTime', e.target.value)}
+                disabled={currentEvent.allDay || false}
+              />
+              <LabeledInput
+                id={`endTime-${eventId}`}
+                label="End Time"
+                type="time"
+                icon={<Clock />}
+                value={currentEvent.endTime || ''}
+                onChange={(e) => handleChange('endTime', e.target.value)}
+                disabled={currentEvent.allDay || false}
+              />
+            </div>
+            <LabeledInput
+              id={`numberOfGuests-${eventId}`}
+              label="Number of Guests"
+              type="number"
+              icon={<Users />}
+              value={currentEvent.numberOfGuests || ''}
+              onChange={(e) => handleChange('numberOfGuests', e.target.value)}
+              placeholder="e.g., 50"
+              min="0"
+            />
           </div>
-        </header>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
-          <LabeledInput
-            id={`priceGiven-${eventId}`}
-            label="Price Given ($)"
-            type="number"
-            value={currentEvent.priceGiven || ''}
-            onChange={(e) => handleChange('priceGiven', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`downPaymentRequired-${eventId}`}
-            label="Down Payment Required ($)"
-            type="number"
-            value={currentEvent.downPaymentRequired || ''}
-            onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <ToggleInput
-            id={`downPaymentReceived-${eventId}`}
-            label="Deposit received"
-            checked={currentEvent.downPaymentReceived || false}
-            onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-            description="Keep track of when the initial payment arrives."
-            className="md:col-span-2"
-          />
-          <LabeledInput
-            id={`downPaymentReceivedDate-${eventId}`}
-            label="Down Payment Received Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.downPaymentReceivedDate || ''}
-            onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
-            disabled={!currentEvent.downPaymentReceived}
-          />
-          <LabeledInput
-            id={`amountPaidAfter-${eventId}`}
-            label="Food/Beverage/Other Costs ($)"
-            type="number"
-            value={currentEvent.amountPaidAfter || ''}
-            onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`grandTotal-${eventId}`}
-            label="Grand Total ($)"
-            type="number"
-            value={currentEvent.grandTotal || ''}
-            onChange={(e) => handleChange('grandTotal', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`securityDeposit-${eventId}`}
-            label="Security Deposit ($)"
-            type="number"
-            value={currentEvent.securityDeposit || ''}
-            onChange={(e) => handleChange('securityDeposit', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <ToggleInput
-            id={`finalPaymentReceived-${eventId}`}
-            label="Final payment received"
-            checked={currentEvent.finalPaymentReceived || false}
-            onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-            description="Confirm when the closing balance has been paid."
-            className="md:col-span-2"
-          />
-          <LabeledInput
-            id={`finalPaymentReceivedDate-${eventId}`}
-            label="Final Payment Received Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.finalPaymentReceivedDate || ''}
-            onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
-            disabled={!currentEvent.finalPaymentReceived}
-          />
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section className="rounded-3xl border border-gray-200 bg-white/85 p-6 shadow-sm">
-        <header className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600">
-            <FileText size={20} />
-          </span>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">Notes & Attachments</h3>
-            <p className="text-sm text-gray-500">
-              Keep everyone aligned with the latest context and paperwork.
-            </p>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <section className="xl:col-span-2 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 p-6 shadow-md ring-1 ring-emerald-100">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+              <DollarSign size={20} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-emerald-900">Financial summary</h3>
+              <p className="text-sm text-emerald-700/70">Stay on top of packages, add-ons, and totals.</p>
+            </div>
+          </header>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <LabeledInput
+              id={`priceGiven-${eventId}`}
+              label="Price Given ($)"
+              type="number"
+              value={currentEvent.priceGiven || ''}
+              onChange={(e) => handleChange('priceGiven', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`grandTotal-${eventId}`}
+              label="Grand Total ($)"
+              type="number"
+              value={currentEvent.grandTotal || ''}
+              onChange={(e) => handleChange('grandTotal', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`downPaymentRequired-${eventId}`}
+              label="Down Payment Required ($)"
+              type="number"
+              value={currentEvent.downPaymentRequired || ''}
+              onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`amountPaidAfter-${eventId}`}
+              label="Food/Beverage/Other Costs ($)"
+              type="number"
+              value={currentEvent.amountPaidAfter || ''}
+              onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`securityDeposit-${eventId}`}
+              label="Security Deposit ($)"
+              type="number"
+              value={currentEvent.securityDeposit || ''}
+              onChange={(e) => handleChange('securityDeposit', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
           </div>
-        </header>
-        <div className="space-y-5">
-          <div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <Clock size={20} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Payment tracking</h3>
+              <p className="text-sm text-slate-500">Keep a pulse on deposits and final balances.</p>
+            </div>
+          </header>
+          <div className="mt-6 space-y-5">
+            <ToggleInput
+              id={`downPaymentReceived-${eventId}`}
+              label="Deposit received"
+              checked={currentEvent.downPaymentReceived || false}
+              onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
+              description="Record when the initial payment arrives."
+              className="bg-white/70 shadow-sm"
+            />
+            <LabeledInput
+              id={`downPaymentReceivedDate-${eventId}`}
+              label="Deposit Received Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.downPaymentReceivedDate || ''}
+              onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
+              disabled={!currentEvent.downPaymentReceived}
+            />
+            <ToggleInput
+              id={`finalPaymentReceived-${eventId}`}
+              label="Final payment received"
+              checked={currentEvent.finalPaymentReceived || false}
+              onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
+              description="Confirm when the closing balance is paid."
+              className="bg-white/70 shadow-sm"
+            />
+            <LabeledInput
+              id={`finalPaymentReceivedDate-${eventId}`}
+              label="Final Payment Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.finalPaymentReceivedDate || ''}
+              onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
+              disabled={!currentEvent.finalPaymentReceived}
+            />
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-3">
+        <section className="xl:col-span-2 rounded-3xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-purple-100/60 p-6 shadow-md ring-1 ring-purple-200">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
+              <FileText size={20} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-purple-900">Notes</h3>
+              <p className="text-sm text-purple-700/70">Share context, requests, or reminders for the team.</p>
+            </div>
+          </header>
+          <div className="mt-6">
             <label
               htmlFor={`notes-${eventId}`}
-              className="mb-2 block text-sm font-semibold text-gray-700"
+              className="mb-2 block text-sm font-semibold text-purple-900/70"
             >
-              Notes
+              Internal notes
             </label>
             <textarea
               ref={notesTextareaRef}
@@ -427,22 +455,33 @@ function EventCard(props, ref) {
               placeholder="Add additional details, client requests, or internal notes..."
               value={currentEvent.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/80 focus:bg-white hover:border-gray-300 min-h-[96px] resize-none"
+              className="w-full rounded-2xl border border-purple-200 bg-white/80 p-4 text-sm shadow-sm transition focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-300/80"
               rows="3"
             ></textarea>
           </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h4>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+          <header className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+              <Paperclip size={20} />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Attachments</h3>
+              <p className="text-sm text-slate-500">Collect proposals, contracts, or supporting docs.</p>
+            </div>
+          </header>
+          <div className="mt-6 space-y-4">
             <label
               htmlFor={`fileUpload-${eventId}`}
-              className="relative flex w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2 text-[11px] text-gray-600 transition-colors hover:border-blue-400 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-500/30"
+              className="relative flex w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-xs font-medium text-slate-500 transition hover:border-blue-400 hover:text-blue-600 focus-within:border-blue-400 focus-within:text-blue-600 focus-within:ring-2 focus-within:ring-blue-200/60"
             >
-              <span className="flex items-center gap-1.5 text-blue-600 text-xs font-semibold">
-                <Paperclip size={16} className="text-blue-500" />
-                Add files
+              <span className="flex items-center gap-2 text-blue-600">
+                <Paperclip size={18} className="text-blue-500" />
+                Upload files
               </span>
-              <span className="text-[10px] text-gray-500 leading-tight text-center">
-                Drag and drop or click to attach supporting docs.
+              <span className="text-[10px] leading-tight text-slate-400">
+                Drag in documents or click to browse from your computer.
               </span>
               <input
                 id={`fileUpload-${eventId}`}
@@ -454,13 +493,13 @@ function EventCard(props, ref) {
             </label>
 
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
-                <p className="text-sm font-medium text-gray-600 mb-3">Uploaded files</p>
-                <ul className="space-y-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <p className="text-sm font-semibold text-slate-600">Uploaded files</p>
+                <ul className="mt-3 space-y-3">
                   {currentEvent.files.map((file, index) => (
                     <li
                       key={index}
-                      className="group flex items-center justify-between rounded-xl border border-transparent bg-white/80 px-3 py-2 text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50/50"
+                      className="group flex items-center justify-between rounded-xl border border-transparent bg-white/90 px-3 py-2 text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50/70"
                     >
                       <div className="flex min-w-0 items-center gap-2">
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -470,7 +509,7 @@ function EventCard(props, ref) {
                           href={file.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="truncate text-blue-600 hover:text-blue-700 hover:underline"
+                          className="truncate text-blue-600 transition group-hover:text-blue-700 group-hover:underline"
                           title={file.name}
                         >
                           {file.name}
@@ -478,7 +517,7 @@ function EventCard(props, ref) {
                       </div>
                       <button
                         onClick={() => handleDeleteFile(file, index)}
-                        className="ml-3 rounded-lg px-2 py-1 text-xs font-medium text-red-500 transition hover:bg-red-100"
+                        className="ml-3 rounded-lg px-2 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-100"
                         title="Delete this file"
                       >
                         Delete
@@ -489,8 +528,8 @@ function EventCard(props, ref) {
               </div>
             )}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
