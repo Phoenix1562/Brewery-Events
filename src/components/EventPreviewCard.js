@@ -8,7 +8,7 @@ function EventPreviewCard({ event, onClick, highlight }) {
     const date = new Date(year, month - 1, day);
 
     return date.toLocaleDateString('en-US', {
-      month: 'short',
+      month: 'long',
       day: 'numeric',
       year: 'numeric'
     });
@@ -18,7 +18,7 @@ function EventPreviewCard({ event, onClick, highlight }) {
     if (!dateString) return '';
     const [year, month, day] = dateString.split('T')[0].split('-');
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', { weekday: 'short' });
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
   };
 
   const getInitials = (value) => {
@@ -64,8 +64,6 @@ function EventPreviewCard({ event, onClick, highlight }) {
         ${hasPaymentIssue ? 'border-amber-200' : ''}`}
       onClick={onClick}
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#FF5A5F] via-rose-400 to-orange-300" />
-
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -100,7 +98,7 @@ function EventPreviewCard({ event, onClick, highlight }) {
           <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
             <User2 className="h-4 w-4 text-[#FF5A5F]" />
             <div className="truncate">
-              <p className="font-medium text-gray-700 truncate">{event.buildingArea || 'TBD'}</p>
+              <p className="font-medium text-gray-700 truncate">{event.buildingArea || 'To be determined'}</p>
               <p className="text-[11px] uppercase tracking-wide">Space</p>
             </div>
           </div>
