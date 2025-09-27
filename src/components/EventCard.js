@@ -74,9 +74,9 @@ function ToggleInput({ label, checked, onChange, id, disabled, description, clas
 function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', title, description, children, className = '' }) {
   return (
     <section
-      className={`flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/5 ${className}`}
+      className={`flex h-full flex-col overflow-hidden rounded-3xl border border-slate-100/70 bg-white/90 shadow-[0_30px_60px_-48px_rgba(15,23,42,0.55)] backdrop-blur ${className}`}
     >
-      <header className="flex items-start gap-3 border-b border-slate-100/80 bg-white/90 px-6 py-5">
+      <header className="flex items-start gap-3 border-b border-slate-100/70 bg-white/80 px-6 py-5">
         {Icon && (
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${accentColor}`}>
             <Icon size={18} />
@@ -226,104 +226,107 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-[1.15fr_1fr_0.9fr] lg:gap-7 xl:gap-8">
-      <SectionCard
-        icon={Info}
-        accentColor="bg-blue-50 text-blue-600"
-        title="Event Overview"
-        description="Schedule and guest details at a glance."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <LabeledInput
-            id={`clientName-${eventId}`}
-            label="Client Name"
-            type="text"
-            value={currentEvent.clientName || ''}
-            onChange={(e) => handleChange('clientName', e.target.value)}
-            placeholder="Client's full name"
-          />
-          <LabeledInput
-            id={`eventName-${eventId}`}
-            label="Event Name"
-            type="text"
-            value={currentEvent.eventName || ''}
-            onChange={(e) => handleChange('eventName', e.target.value)}
-            placeholder="Brief name for the event"
-          />
-          <LabeledInput
-            id={`eventDate-${eventId}`}
-            label="Event Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.eventDate || ''}
-            onChange={(e) => handleChange('eventDate', e.target.value)}
-          />
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor={`buildingArea-${eventId}`}
-              className="text-sm font-semibold text-slate-600"
-            >
-              Building Area
-            </label>
-            <select
-              id={`buildingArea-${eventId}`}
-              value={currentEvent.buildingArea || ''}
-              onChange={(e) => handleChange('buildingArea', e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 hover:border-slate-300"
-            >
-              <option value="">Select venue</option>
-              <option value="Brewhouse">Brewhouse</option>
-              <option value="Taphouse">Taphouse</option>
-              <option value="Hall">Hall</option>
-            </select>
+    <div className="space-y-6">
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr_1.05fr] lg:gap-6">
+        <SectionCard
+          icon={Info}
+          accentColor="bg-blue-50 text-blue-600"
+          title="Event Overview"
+          description="Schedule and guest details at a glance."
+          className="lg:col-span-1"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <LabeledInput
+              id={`clientName-${eventId}`}
+              label="Client Name"
+              type="text"
+              value={currentEvent.clientName || ''}
+              onChange={(e) => handleChange('clientName', e.target.value)}
+              placeholder="Client's full name"
+            />
+            <LabeledInput
+              id={`eventName-${eventId}`}
+              label="Event Name"
+              type="text"
+              value={currentEvent.eventName || ''}
+              onChange={(e) => handleChange('eventName', e.target.value)}
+              placeholder="Brief name for the event"
+            />
+            <LabeledInput
+              id={`eventDate-${eventId}`}
+              label="Event Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.eventDate || ''}
+              onChange={(e) => handleChange('eventDate', e.target.value)}
+            />
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor={`buildingArea-${eventId}`}
+                className="text-sm font-semibold text-slate-600"
+              >
+                Building Area
+              </label>
+              <select
+                id={`buildingArea-${eventId}`}
+                value={currentEvent.buildingArea || ''}
+                onChange={(e) => handleChange('buildingArea', e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 hover:border-slate-300"
+              >
+                <option value="">Select venue</option>
+                <option value="Brewhouse">Brewhouse</option>
+                <option value="Taphouse">Taphouse</option>
+                <option value="Hall">Hall</option>
+              </select>
+            </div>
+            <LabeledInput
+              id={`startTime-${eventId}`}
+              label="Start Time"
+              type="time"
+              icon={<Clock />}
+              value={currentEvent.startTime || ''}
+              onChange={(e) => handleChange('startTime', e.target.value)}
+              disabled={currentEvent.allDay || false}
+            />
+            <LabeledInput
+              id={`endTime-${eventId}`}
+              label="End Time"
+              type="time"
+              icon={<Clock />}
+              value={currentEvent.endTime || ''}
+              onChange={(e) => handleChange('endTime', e.target.value)}
+              disabled={currentEvent.allDay || false}
+            />
+            <ToggleInput
+              id={`allDay-${eventId}`}
+              label="All-day event"
+              checked={currentEvent.allDay || false}
+              onChange={(e) => handleChange('allDay', e.target.checked)}
+              description="Blocks out start and end times for the full day."
+              className="sm:col-span-2"
+            />
+            <LabeledInput
+              id={`numberOfGuests-${eventId}`}
+              label="Number of Guests"
+              type="number"
+              icon={<Users />}
+              value={currentEvent.numberOfGuests || ''}
+              onChange={(e) => handleChange('numberOfGuests', e.target.value)}
+              placeholder="e.g., 50"
+              min="0"
+            />
           </div>
-          <LabeledInput
-            id={`startTime-${eventId}`}
-            label="Start Time"
-            type="time"
-            icon={<Clock />}
-            value={currentEvent.startTime || ''}
-            onChange={(e) => handleChange('startTime', e.target.value)}
-            disabled={currentEvent.allDay || false}
-          />
-          <LabeledInput
-            id={`endTime-${eventId}`}
-            label="End Time"
-            type="time"
-            icon={<Clock />}
-            value={currentEvent.endTime || ''}
-            onChange={(e) => handleChange('endTime', e.target.value)}
-            disabled={currentEvent.allDay || false}
-          />
-          <ToggleInput
-            id={`allDay-${eventId}`}
-            label="All-day event"
-            checked={currentEvent.allDay || false}
-            onChange={(e) => handleChange('allDay', e.target.checked)}
-            description="Blocks out start and end times for the full day."
-            className="sm:col-span-2"
-          />
-          <LabeledInput
-            id={`numberOfGuests-${eventId}`}
-            label="Number of Guests"
-            type="number"
-            icon={<Users />}
-            value={currentEvent.numberOfGuests || ''}
-            onChange={(e) => handleChange('numberOfGuests', e.target.value)}
-            placeholder="e.g., 50"
-            min="0"
-          />
-        </div>
-      </SectionCard>
+        </SectionCard>
 
-      <SectionCard
-        icon={DollarSign}
-        accentColor="bg-emerald-50 text-emerald-600"
-        title="Payment Tracking"
-        description="Monitor deposits and outstanding balances."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <LabeledInput
+        <SectionCard
+          icon={DollarSign}
+          accentColor="bg-emerald-50 text-emerald-600"
+          title="Payment Tracking"
+          description="Monitor deposits and outstanding balances."
+          className="lg:col-span-1"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <LabeledInput
             id={`priceGiven-${eventId}`}
             label="Price Given ($)"
             type="number"
@@ -408,90 +411,91 @@ function EventCard(props, ref) {
             disabled={!currentEvent.finalPaymentReceived}
           />
         </div>
-      </SectionCard>
+        </SectionCard>
 
-      <SectionCard
-        icon={FileText}
-        accentColor="bg-violet-50 text-violet-600"
-        title="Notes & Files"
-        description="Capture context and share supporting docs."
-        className="md:col-span-2 lg:col-span-1 lg:row-span-2"
-      >
-        <div className="flex h-full flex-col gap-6">
-          <div className="flex flex-1 flex-col gap-1.5">
-            <label
-              htmlFor={`notes-${eventId}`}
-              className="text-sm font-semibold text-slate-600"
-            >
-              Notes
-            </label>
-            <textarea
-              ref={notesTextareaRef}
-              id={`notes-${eventId}`}
-              placeholder="Add additional details, client requests, or internal notes..."
-              value={currentEvent.notes || ''}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              className="min-h-[170px] w-full flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-700 shadow-inner transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder:text-slate-400"
-              rows="3"
-            ></textarea>
-          </div>
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-600">Attachments</p>
-            <label
-              htmlFor={`fileUpload-${eventId}`}
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 px-4 py-5 text-center text-sm font-medium text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50/50 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-200/70"
-            >
-              <span className="flex items-center gap-2 text-blue-600">
-                <Paperclip size={16} className="text-blue-500" />
-                Add files
-              </span>
-              <span className="text-xs font-normal text-slate-500">
-                Drop documents here or click to browse.
-              </span>
-              <input
-                id={`fileUpload-${eventId}`}
-                type="file"
-                onChange={handleFileUpload}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                multiple
-              />
-            </label>
+        <SectionCard
+          icon={FileText}
+          accentColor="bg-violet-50 text-violet-600"
+          title="Notes & Files"
+          description="Capture context and share supporting docs."
+          className="lg:col-span-1"
+        >
+          <div className="flex h-full flex-col gap-6">
+            <div className="flex flex-1 flex-col gap-1.5">
+              <label
+                htmlFor={`notes-${eventId}`}
+                className="text-sm font-semibold text-slate-600"
+              >
+                Notes
+              </label>
+              <textarea
+                ref={notesTextareaRef}
+                id={`notes-${eventId}`}
+                placeholder="Add additional details, client requests, or internal notes..."
+                value={currentEvent.notes || ''}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                className="min-h-[170px] w-full flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-700 shadow-inner transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder:text-slate-400"
+                rows="3"
+              ></textarea>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-600">Attachments</p>
+              <label
+                htmlFor={`fileUpload-${eventId}`}
+                className="relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 px-4 py-5 text-center text-sm font-medium text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50/50 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-200/70"
+              >
+                <span className="flex items-center gap-2 text-blue-600">
+                  <Paperclip size={16} className="text-blue-500" />
+                  Add files
+                </span>
+                <span className="text-xs font-normal text-slate-500">
+                  Drop documents here or click to browse.
+                </span>
+                <input
+                  id={`fileUpload-${eventId}`}
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  multiple
+                />
+              </label>
 
-            {currentEvent.files && currentEvent.files.length > 0 && (
-              <ul className="max-h-64 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 bg-white">
-                {currentEvent.files.map((file, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-600 transition hover:bg-blue-50/40"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                        <Paperclip size={16} />
-                      </span>
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="truncate font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                        title={file.name}
-                      >
-                        {file.name}
-                      </a>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteFile(file, index)}
-                      className="rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-rose-500 transition hover:border-rose-100 hover:bg-rose-50"
-                      title="Delete this file"
+              {currentEvent.files && currentEvent.files.length > 0 && (
+                <ul className="max-h-64 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 bg-white">
+                  {currentEvent.files.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-600 transition hover:bg-blue-50/40"
                     >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                          <Paperclip size={16} />
+                        </span>
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </a>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFile(file, index)}
+                        className="rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-rose-500 transition hover:border-rose-100 hover:bg-rose-50"
+                        title="Delete this file"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      </div>
     </div>
   );
 }
