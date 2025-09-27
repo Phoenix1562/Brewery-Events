@@ -6,10 +6,13 @@ import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign
 // LabeledInput component (remains the same)
 function LabeledInput({ label, type, value, onChange, placeholder, disabled, id, icon, ...rest }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="flex items-center text-sm font-semibold text-slate-600">
+    <div className="flex flex-col gap-2">
+      <label
+        htmlFor={id}
+        className="flex items-center text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
+      >
         {icon && React.cloneElement(icon, { size: 14, className: 'mr-2 text-slate-400' })}
-        {label}
+        <span className="truncate">{label}</span>
       </label>
       <input
         id={id}
@@ -18,9 +21,9 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, id,
         placeholder={placeholder}
         onChange={onChange}
         disabled={disabled}
-        className={`w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm transition-colors duration-150 ease-in-out
-          focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder:text-slate-400
-          ${disabled ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'hover:border-slate-300'}`}
+        className={`w-full rounded-xl border border-slate-300/80 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-all duration-150 ease-in-out
+          focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 placeholder:text-slate-400
+          ${disabled ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'hover:border-slate-300/90'}`}
         {...rest}
       />
     </div>
@@ -33,8 +36,8 @@ function ToggleInput({ label, checked, onChange, id, disabled, description, clas
     <label
       htmlFor={id}
       aria-disabled={disabled}
-      className={`group flex w-full items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition ${
-        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-200 hover:shadow-md'
+      className={`group flex w-full items-start justify-between gap-4 rounded-xl border border-slate-300/80 bg-white px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-300 hover:shadow-md'
       } ${className}`}
     >
       <div className="min-w-0">
@@ -74,11 +77,11 @@ function ToggleInput({ label, checked, onChange, id, disabled, description, clas
 function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', title, description, children, className = '' }) {
   return (
     <section
-      className={`flex h-full flex-col overflow-hidden rounded-3xl border border-slate-100/70 bg-white/90 shadow-[0_30px_60px_-48px_rgba(15,23,42,0.55)] backdrop-blur ${className}`}
+      className={`flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] backdrop-blur ${className}`}
     >
-      <header className="flex items-start gap-3 border-b border-slate-100/70 bg-white/80 px-6 py-5">
+      <header className="flex items-start gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-5">
         {Icon && (
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${accentColor}`}>
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${accentColor}`}>
             <Icon size={18} />
           </span>
         )}
@@ -87,7 +90,7 @@ function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', 
           {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
         </div>
       </header>
-      <div className="flex-1 px-6 py-5">{children}</div>
+      <div className="flex-1 px-6 py-6">{children}</div>
     </section>
   );
 }
@@ -227,7 +230,7 @@ function EventCard(props, ref) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr_1.05fr] lg:gap-6">
+      <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr_0.95fr] lg:gap-7">
         <SectionCard
           icon={Info}
           accentColor="bg-blue-50 text-blue-600"
@@ -235,7 +238,7 @@ function EventCard(props, ref) {
           description="Schedule and guest details at a glance."
           className="lg:col-span-1"
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <LabeledInput
               id={`clientName-${eventId}`}
               label="Client Name"
@@ -263,7 +266,7 @@ function EventCard(props, ref) {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor={`buildingArea-${eventId}`}
-                className="text-sm font-semibold text-slate-600"
+                className="text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
               >
                 Building Area
               </label>
@@ -271,7 +274,7 @@ function EventCard(props, ref) {
                 id={`buildingArea-${eventId}`}
                 value={currentEvent.buildingArea || ''}
                 onChange={(e) => handleChange('buildingArea', e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 hover:border-slate-300"
+                className="w-full rounded-xl border border-slate-300/80 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-all duration-150 ease-in-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 hover:border-slate-300/90"
               >
                 <option value="">Select venue</option>
                 <option value="Brewhouse">Brewhouse</option>
@@ -325,92 +328,92 @@ function EventCard(props, ref) {
           description="Monitor deposits and outstanding balances."
           className="lg:col-span-1"
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <LabeledInput
-            id={`priceGiven-${eventId}`}
-            label="Price Given ($)"
-            type="number"
-            value={currentEvent.priceGiven || ''}
-            onChange={(e) => handleChange('priceGiven', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`downPaymentRequired-${eventId}`}
-            label="Down Payment Required ($)"
-            type="number"
-            value={currentEvent.downPaymentRequired || ''}
-            onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <ToggleInput
-            id={`downPaymentReceived-${eventId}`}
-            label="Deposit received"
-            checked={currentEvent.downPaymentReceived || false}
-            onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-            description="Keep track of when the initial payment arrives."
-            className="sm:col-span-2"
-          />
-          <LabeledInput
-            id={`downPaymentReceivedDate-${eventId}`}
-            label="Down Payment Received Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.downPaymentReceivedDate || ''}
-            onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
-            disabled={!currentEvent.downPaymentReceived}
-          />
-          <LabeledInput
-            id={`amountPaidAfter-${eventId}`}
-            label="Food/Beverage/Other Costs ($)"
-            type="number"
-            value={currentEvent.amountPaidAfter || ''}
-            onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`grandTotal-${eventId}`}
-            label="Grand Total ($)"
-            type="number"
-            value={currentEvent.grandTotal || ''}
-            onChange={(e) => handleChange('grandTotal', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <LabeledInput
-            id={`securityDeposit-${eventId}`}
-            label="Security Deposit ($)"
-            type="number"
-            value={currentEvent.securityDeposit || ''}
-            onChange={(e) => handleChange('securityDeposit', e.target.value)}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-          />
-          <ToggleInput
-            id={`finalPaymentReceived-${eventId}`}
-            label="Final payment received"
-            checked={currentEvent.finalPaymentReceived || false}
-            onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-            description="Confirm when the closing balance has been paid."
-            className="sm:col-span-2"
-          />
-          <LabeledInput
-            id={`finalPaymentReceivedDate-${eventId}`}
-            label="Final Payment Received Date"
-            type="date"
-            icon={<CalendarIcon />}
-            value={currentEvent.finalPaymentReceivedDate || ''}
-            onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
-            disabled={!currentEvent.finalPaymentReceived}
-          />
-        </div>
+              id={`priceGiven-${eventId}`}
+              label="Price Given ($)"
+              type="number"
+              value={currentEvent.priceGiven || ''}
+              onChange={(e) => handleChange('priceGiven', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`downPaymentRequired-${eventId}`}
+              label="Down Payment Required ($)"
+              type="number"
+              value={currentEvent.downPaymentRequired || ''}
+              onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <ToggleInput
+              id={`downPaymentReceived-${eventId}`}
+              label="Deposit received"
+              checked={currentEvent.downPaymentReceived || false}
+              onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
+              description="Keep track of when the initial payment arrives."
+              className="sm:col-span-2"
+            />
+            <LabeledInput
+              id={`downPaymentReceivedDate-${eventId}`}
+              label="Down Payment Received Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.downPaymentReceivedDate || ''}
+              onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
+              disabled={!currentEvent.downPaymentReceived}
+            />
+            <LabeledInput
+              id={`amountPaidAfter-${eventId}`}
+              label="Food/Beverage/Other Costs ($)"
+              type="number"
+              value={currentEvent.amountPaidAfter || ''}
+              onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`grandTotal-${eventId}`}
+              label="Grand Total ($)"
+              type="number"
+              value={currentEvent.grandTotal || ''}
+              onChange={(e) => handleChange('grandTotal', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <LabeledInput
+              id={`securityDeposit-${eventId}`}
+              label="Security Deposit ($)"
+              type="number"
+              value={currentEvent.securityDeposit || ''}
+              onChange={(e) => handleChange('securityDeposit', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+            <ToggleInput
+              id={`finalPaymentReceived-${eventId}`}
+              label="Final payment received"
+              checked={currentEvent.finalPaymentReceived || false}
+              onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
+              description="Confirm when the closing balance has been paid."
+              className="sm:col-span-2"
+            />
+            <LabeledInput
+              id={`finalPaymentReceivedDate-${eventId}`}
+              label="Final Payment Received Date"
+              type="date"
+              icon={<CalendarIcon />}
+              value={currentEvent.finalPaymentReceivedDate || ''}
+              onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
+              disabled={!currentEvent.finalPaymentReceived}
+            />
+          </div>
         </SectionCard>
 
         <SectionCard
@@ -421,10 +424,10 @@ function EventCard(props, ref) {
           className="lg:col-span-1"
         >
           <div className="flex h-full flex-col gap-6">
-            <div className="flex flex-1 flex-col gap-1.5">
+            <div className="flex flex-1 flex-col gap-2">
               <label
                 htmlFor={`notes-${eventId}`}
-                className="text-sm font-semibold text-slate-600"
+                className="text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
               >
                 Notes
               </label>
@@ -434,7 +437,7 @@ function EventCard(props, ref) {
                 placeholder="Add additional details, client requests, or internal notes..."
                 value={currentEvent.notes || ''}
                 onChange={(e) => handleChange('notes', e.target.value)}
-                className="min-h-[170px] w-full flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-700 shadow-inner transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder:text-slate-400"
+                className="min-h-[170px] w-full flex-1 resize-none rounded-xl border border-slate-300/80 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 placeholder:text-slate-400"
                 rows="3"
               ></textarea>
             </div>
@@ -442,7 +445,7 @@ function EventCard(props, ref) {
               <p className="text-sm font-semibold text-slate-600">Attachments</p>
               <label
                 htmlFor={`fileUpload-${eventId}`}
-                className="relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 px-4 py-5 text-center text-sm font-medium text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50/50 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-200/70"
+                className="relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300/80 bg-slate-50 px-4 py-5 text-center text-sm font-semibold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50/60 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-200/70"
               >
                 <span className="flex items-center gap-2 text-blue-600">
                   <Paperclip size={16} className="text-blue-500" />
@@ -461,11 +464,11 @@ function EventCard(props, ref) {
               </label>
 
               {currentEvent.files && currentEvent.files.length > 0 && (
-                <ul className="max-h-64 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 bg-white">
+                <ul className="max-h-64 divide-y divide-slate-200 overflow-y-auto rounded-xl border border-slate-200 bg-white">
                   {currentEvent.files.map((file, index) => (
                     <li
                       key={index}
-                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-600 transition hover:bg-blue-50/40"
+                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-600 transition hover:bg-blue-50/60"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
