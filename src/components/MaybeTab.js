@@ -6,7 +6,7 @@ import { PlusCircle, Calendar, Clock } from 'lucide-react';
 
 function MaybeTab({ events, addEvent, onSelectEvent }) {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-amber-50/40 p-6 shadow-sm">
       <TabHeader
         icon={<Clock className="h-7 w-7 text-amber-500" />}
         title="Pending Events"
@@ -23,9 +23,25 @@ function MaybeTab({ events, addEvent, onSelectEvent }) {
       
       {/* Counter badge */}
       {events.length > 0 && (
-        <div className="mb-6 flex">
-          <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium">
-            {events.length} pending {events.length === 1 ? 'event' : 'events'}
+        <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-200/60 bg-white px-4 py-3 shadow-inner">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10">
+              <Clock className="h-5 w-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-amber-500">In review</p>
+              <p className="font-semibold text-gray-700">{events.length} pending {events.length === 1 ? 'event' : 'events'}</p>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3 rounded-xl border border-amber-200/60 bg-white px-4 py-3 shadow-inner">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10">
+              <Calendar className="h-5 w-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-amber-500">Convert quickly</p>
+              <p className="text-sm text-gray-600">Move confirmed bookings to Upcoming</p>
+            </div>
           </div>
         </div>
       )}
@@ -44,7 +60,7 @@ function MaybeTab({ events, addEvent, onSelectEvent }) {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {events.map(event => (
             <EventPreviewCard
               key={event.id}
