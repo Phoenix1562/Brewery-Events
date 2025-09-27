@@ -81,6 +81,8 @@ function EventCard(props, ref) {
   const [localEvent, setLocalEvent] = useState(event || {});
   const [isDirty, setIsDirty] = useState(false);
   const notesTextareaRef = useRef(null); // Ref for the notes textarea
+  const fileInputRef = useRef(null);
+  const [isDropActive, setIsDropActive] = useState(false);
 
   useEffect(() => {
     const initialEvent = event || {};
@@ -136,8 +138,7 @@ function EventCard(props, ref) {
   };
 
   // ... (handleFileUpload, handleDeleteFile, internalSave, internalClose, useImperativeHandle remain the same)
-  const handleFileUpload = async (e) => {
-    const filesToUpload = Array.from(e.target.files);
+  const processFiles = async (filesToUpload) => {
     if (!filesToUpload.length) return;
     for (const file of filesToUpload) {
       try {
@@ -152,6 +153,39 @@ function EventCard(props, ref) {
         alert('Failed to upload file: ' + file.name);
       }
     }
+  };
+
+  const handleFileUpload = async (e) => {
+    const filesToUpload = Array.from(e.target.files || []);
+    await processFiles(filesToUpload);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDropActive(false);
+    const filesToUpload = Array.from(e.dataTransfer?.files || []);
+    if (!filesToUpload.length) return;
+    await processFiles(filesToUpload);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (!isDropActive) {
+      setIsDropActive(true);
+    }
+  };
+
+  const handleDragLeave = () => {
+    if (isDropActive) {
+      setIsDropActive(false);
+    }
+  };
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
   };
 
   const handleDeleteFile = async (file, index) => {
@@ -205,9 +239,9 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-8 text-slate-700">
-      <div className="grid gap-6 xl:grid-cols-3">
-        <section className="xl:col-span-2 rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+    <div className="space-y-10 text-slate-700">
+      <div className="grid gap-8 xl:grid-cols-12">
+        <section className="xl:col-span-8 rounded-[28px] border border-slate-200 bg-white/95 p-8 shadow-lg ring-1 ring-slate-900/5">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
               <Info size={22} />
@@ -217,7 +251,7 @@ function EventCard(props, ref) {
               <p className="text-sm text-slate-500">Capture the essential details for this booking.</p>
             </div>
           </header>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <LabeledInput
               id={`clientName-${eventId}`}
               label="Client Name"
@@ -264,7 +298,7 @@ function EventCard(props, ref) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-100/60 p-6 shadow-md ring-1 ring-blue-100">
+        <section className="xl:col-span-4 rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-100/60 p-8 shadow-lg ring-1 ring-blue-100">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
               <CalendarIcon size={20} />
@@ -274,7 +308,7 @@ function EventCard(props, ref) {
               <p className="text-sm text-blue-700/70">Quickly configure the flow of the day.</p>
             </div>
           </header>
-          <div className="mt-6 space-y-4">
+          <div className="mt-8 space-y-5">
             <ToggleInput
               id={`allDay-${eventId}`}
               label="All-day event"
@@ -283,7 +317,7 @@ function EventCard(props, ref) {
               description="Blocks out start and end times for the full day."
               className="bg-white/70 shadow-sm"
             />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <LabeledInput
                 id={`startTime-${eventId}`}
                 label="Start Time"
@@ -317,8 +351,8 @@ function EventCard(props, ref) {
         </section>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <section className="xl:col-span-2 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 p-6 shadow-md ring-1 ring-emerald-100">
+      <div className="grid gap-8 xl:grid-cols-12">
+        <section className="xl:col-span-7 rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 p-8 shadow-lg ring-1 ring-emerald-100">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
               <DollarSign size={20} />
@@ -328,7 +362,7 @@ function EventCard(props, ref) {
               <p className="text-sm text-emerald-700/70">Stay on top of packages, add-ons, and totals.</p>
             </div>
           </header>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <LabeledInput
               id={`priceGiven-${eventId}`}
               label="Price Given ($)"
@@ -382,7 +416,7 @@ function EventCard(props, ref) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+        <section className="xl:col-span-5 rounded-[28px] border border-slate-200 bg-white/95 p-8 shadow-lg ring-1 ring-slate-900/5">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
               <Clock size={20} />
@@ -392,7 +426,7 @@ function EventCard(props, ref) {
               <p className="text-sm text-slate-500">Keep a pulse on deposits and final balances.</p>
             </div>
           </header>
-          <div className="mt-6 space-y-5">
+          <div className="mt-8 space-y-5">
             <ToggleInput
               id={`downPaymentReceived-${eventId}`}
               label="Deposit received"
@@ -431,8 +465,8 @@ function EventCard(props, ref) {
         </section>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <section className="xl:col-span-2 rounded-3xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-purple-100/60 p-6 shadow-md ring-1 ring-purple-200">
+      <div className="grid gap-8 xl:grid-cols-12">
+        <section className="xl:col-span-7 rounded-[28px] border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-purple-100/60 p-8 shadow-lg ring-1 ring-purple-200">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
               <FileText size={20} />
@@ -442,7 +476,7 @@ function EventCard(props, ref) {
               <p className="text-sm text-purple-700/70">Share context, requests, or reminders for the team.</p>
             </div>
           </header>
-          <div className="mt-6">
+          <div className="mt-8">
             <label
               htmlFor={`notes-${eventId}`}
               className="mb-2 block text-sm font-semibold text-purple-900/70"
@@ -455,13 +489,13 @@ function EventCard(props, ref) {
               placeholder="Add additional details, client requests, or internal notes..."
               value={currentEvent.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full rounded-2xl border border-purple-200 bg-white/80 p-4 text-sm shadow-sm transition focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-300/80"
+              className="w-full rounded-2xl border border-purple-200 bg-white/85 p-5 text-sm shadow-sm transition focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-300/80"
               rows="3"
             ></textarea>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-md ring-1 ring-slate-900/5">
+        <section className="xl:col-span-5 rounded-[28px] border border-slate-200 bg-white/95 p-8 shadow-lg ring-1 ring-slate-900/5">
           <header className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
               <Paperclip size={20} />
@@ -471,31 +505,47 @@ function EventCard(props, ref) {
               <p className="text-sm text-slate-500">Collect proposals, contracts, or supporting docs.</p>
             </div>
           </header>
-          <div className="mt-6 space-y-4">
-            <label
-              htmlFor={`fileUpload-${eventId}`}
-              className="relative flex w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-xs font-medium text-slate-500 transition hover:border-blue-400 hover:text-blue-600 focus-within:border-blue-400 focus-within:text-blue-600 focus-within:ring-2 focus-within:ring-blue-200/60"
+          <div className="mt-8 space-y-5">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={openFilePicker}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openFilePicker();
+                }
+              }}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-8 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-200/70 focus:ring-offset-2 ${
+                isDropActive
+                  ? 'border-blue-400 bg-blue-50/70 text-blue-600'
+                  : 'border-slate-300 bg-slate-50/80 text-slate-500 hover:border-blue-300 hover:text-blue-600'
+              }`}
             >
               <span className="flex items-center gap-2 text-blue-600">
                 <Paperclip size={18} className="text-blue-500" />
                 Upload files
               </span>
-              <span className="text-[10px] leading-tight text-slate-400">
-                Drag in documents or click to browse from your computer.
+              <span className="text-xs leading-tight text-slate-400">
+                Drag and drop documents here, or click to browse from your computer.
               </span>
-              <input
-                id={`fileUpload-${eventId}`}
-                type="file"
-                onChange={handleFileUpload}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                multiple
-              />
-            </label>
+            </div>
+            <input
+              ref={fileInputRef}
+              id={`fileUpload-${eventId}`}
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              multiple
+            />
 
             {currentEvent.files && currentEvent.files.length > 0 && (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
                 <p className="text-sm font-semibold text-slate-600">Uploaded files</p>
-                <ul className="mt-3 space-y-3">
+                <ul className="mt-4 space-y-3">
                   {currentEvent.files.map((file, index) => (
                     <li
                       key={index}
