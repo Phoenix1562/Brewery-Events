@@ -74,9 +74,9 @@ function UpcomingTab({ events, onSelectEvent }) {
   }, [firstEventDate]);
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-6 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <TabHeader
-        icon={<CalendarClock className="h-7 w-7 text-[#FF5A5F]" />}
+        icon={<CalendarClock className="h-7 w-7 text-sky-500" />}
         title="Upcoming Events"
       />
 
@@ -85,7 +85,7 @@ function UpcomingTab({ events, onSelectEvent }) {
         <input
           type="text"
           placeholder="Search events, people..."
-          className="w-full rounded-full border border-gray-200 bg-white/80 py-2.5 pl-12 pr-12 text-sm shadow-inner focus:border-[#FF5A5F] focus:outline-none focus:ring-2 focus:ring-[#FF5A5F]/30"
+          className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-12 pr-12 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -102,25 +102,25 @@ function UpcomingTab({ events, onSelectEvent }) {
 
       {(events || []).length > 0 && (
         <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 shadow-inner">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100">
-              <CheckCircle className="h-5 w-5 text-rose-500" />
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+              <CheckCircle className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-rose-500">Pipeline</p>
-              <p className="font-semibold text-gray-700">{(events || []).length} upcoming {(events || []).length === 1 ? 'event' : 'events'}</p>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Pipeline</p>
+              <p className="font-semibold text-slate-700">{(events || []).length} upcoming {(events || []).length === 1 ? 'event' : 'events'}</p>
             </div>
           </div>
 
           {/* Adjusted to use firstEventTitle which checks for eventName first */}
           {firstEventDate && sortedEvents.length > 0 && (
-            <div className="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 shadow-inner">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100">
-                <AlertCircle className="h-5 w-5 text-rose-500" />
+            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+                <AlertCircle className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-rose-500">Next up</p>
-                <p className="font-semibold text-rose-500 truncate">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Next up</p>
+                <p className="font-semibold text-sky-600 truncate">
                   {nextEventCountdown}: {firstEventTitle}
                 </p>
               </div>
@@ -130,16 +130,16 @@ function UpcomingTab({ events, onSelectEvent }) {
       )}
 
       {filteredEvents.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 py-12 text-center">
-          <CalendarClock className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-          <p className="text-sm text-gray-500">{searchTerm ? "No events match your search." : "No upcoming events"}</p>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+          <CalendarClock className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+          <p className="text-sm text-slate-500">{searchTerm ? "No events match your search." : "No upcoming events"}</p>
         </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedEvents).map(([monthYear, monthEvents]) => (
             <div key={monthYear}>
-              <h3 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#FF5A5F]" />
+              <h3 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
                 {monthYear}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
