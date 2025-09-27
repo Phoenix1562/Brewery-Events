@@ -556,6 +556,28 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
           isOpen={isEventPanelOpen}
           onClose={handlePanelCloseRequest}
           title={null}
+          footer={
+            <div className="flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  eventCardRef.current &&
+                  typeof eventCardRef.current.triggerSave === 'function' &&
+                  eventCardRef.current.triggerSave()
+                }
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={handlePanelCloseRequest}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                Save &amp; Close
+              </button>
+            </div>
+          }
         >
           <EventCard
             ref={eventCardRef}
@@ -563,22 +585,6 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
             onSave={handleSaveEventInPanel}
             setActiveEvent={handleEventCardSetActive}
           />
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => eventCardRef.current && typeof eventCardRef.current.triggerSave === 'function' && eventCardRef.current.triggerSave()}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={handlePanelCloseRequest}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-            >
-              Save &amp; Close
-            </button>
-          </div>
         </SidePanel>
       )}
       </div>

@@ -254,6 +254,76 @@ function App() {
             isOpen={!!activeEvent}
             onClose={handleSidePanelClose} // Use the refined handler
             title={activeEvent.eventName || 'Event Details'}
+            footer={
+              <AnimatePresence>
+                {activeEvent && ( // Re-check activeEvent for the motion component
+                  <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+                    className="rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-5">
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+                              eventCardRef.current.handleClose();
+                            } else {
+                              saveEvent(activeEvent);
+                              setActiveEvent(null);
+                            }
+                          }}
+                          className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-600"
+                        >
+                          Save & Close
+                        </button>
+                        {activeEvent.status !== 'finished' && (
+                          <button
+                            onClick={() => handleMoveRightEvent(activeEvent.id)}
+                            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+                          >
+                            {activeEvent.status === 'maybe'
+                              ? 'Move to Upcoming Events →'
+                              : activeEvent.status === 'upcoming'
+                                ? 'Move to Finished Events →'
+                                : 'Move Right →'}
+                          </button>
+                        )}
+                        {activeEvent.status !== 'maybe' && (
+                          <button
+                            onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                            className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                          >
+                            {activeEvent.status === 'upcoming'
+                              ? '← Move to Pending Events'
+                              : activeEvent.status === 'finished'
+                                ? '← Move to Upcoming Events'
+                                : '← Move Left'}
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          onClick={() => deleteEvent(activeEvent.id)}
+                          className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={handleSidePanelClose}
+                          className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
+                        >
+                          Cancel / Close
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            }
           >
             <EventCard
               ref={eventCardRef} // Pass ref to EventCard
@@ -266,76 +336,6 @@ function App() {
               active={true} // This EventCard is active when SidePanel is open
               hideActions={true} // Using external action panel in App.js
             />
-            {/* External action panel as previously designed in App.js */}
-            <AnimatePresence>
-              {activeEvent && ( // Re-check activeEvent for the motion component
-                <motion.div
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-                  className="mt-6 rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
-                  style={{ width: '100%' }}
-                >
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      <button
-                        onClick={() => {
-                          if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-                            eventCardRef.current.handleClose();
-                          } else {
-                            saveEvent(activeEvent);
-                            setActiveEvent(null);
-                          }
-                        }}
-                        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-600"
-                      >
-                        Save & Close
-                      </button>
-                      {activeEvent.status !== 'finished' && (
-                        <button
-                          onClick={() => handleMoveRightEvent(activeEvent.id)}
-                          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
-                        >
-                          {activeEvent.status === 'maybe'
-                            ? 'Move to Upcoming Events →'
-                            : activeEvent.status === 'upcoming'
-                              ? 'Move to Finished Events →'
-                              : 'Move Right →'}
-                        </button>
-                      )}
-                      {activeEvent.status !== 'maybe' && (
-                        <button
-                          onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                          className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
-                        >
-                          {activeEvent.status === 'upcoming'
-                            ? '← Move to Pending Events'
-                            : activeEvent.status === 'finished'
-                              ? '← Move to Upcoming Events'
-                              : '← Move Left'}
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => deleteEvent(activeEvent.id)}
-                        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        onClick={handleSidePanelClose}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
-                      >
-                        Cancel / Close
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </SidePanel>
         </div>
       )}
