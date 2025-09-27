@@ -9,10 +9,10 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, id,
     <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="flex items-center text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
+        className="flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
       >
-        {icon && React.cloneElement(icon, { size: 14, className: 'mr-2 text-slate-400' })}
-        <span className="truncate">{label}</span>
+        {icon && React.cloneElement(icon, { size: 14, className: 'text-slate-400' })}
+        <span className="whitespace-normal leading-snug">{label}</span>
       </label>
       <input
         id={id}
@@ -32,18 +32,35 @@ function LabeledInput({ label, type, value, onChange, placeholder, disabled, id,
 
 // ToggleInput component
 function ToggleInput({ label, checked, onChange, id, disabled, description, className = '' }) {
+  const isChecked = Boolean(checked);
   return (
     <label
       htmlFor={id}
       aria-disabled={disabled}
-      className={`group flex w-full items-start justify-between gap-4 rounded-xl border border-slate-300/80 bg-white px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition ${
-        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-300 hover:shadow-md'
+      className={`group flex w-full items-start justify-between gap-4 rounded-xl border px-4 py-3.5 transition ${
+        isChecked
+          ? 'border-blue-400/80 bg-blue-50/80 shadow-[0_16px_38px_-24px_rgba(37,99,235,0.65)]'
+          : 'border-slate-300/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]'
+      } ${
+        disabled
+          ? 'cursor-not-allowed opacity-70'
+          : 'cursor-pointer hover:border-blue-300 hover:shadow-lg hover:shadow-blue-200/50'
       } ${className}`}
     >
       <div className="min-w-0">
-        <p className={`text-sm font-semibold ${disabled ? 'text-slate-400' : 'text-slate-700'}`}>{label}</p>
+        <p
+          className={`text-sm font-semibold ${
+            disabled ? 'text-slate-400' : isChecked ? 'text-blue-700' : 'text-slate-700'
+          }`}
+        >
+          {label}
+        </p>
         {description && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p
+            className={`mt-1 text-xs ${
+              disabled ? 'text-slate-400' : isChecked ? 'text-blue-600/90' : 'text-slate-500'
+            }`}
+          >
             {description}
           </p>
         )}
@@ -62,11 +79,11 @@ function ToggleInput({ label, checked, onChange, id, disabled, description, clas
           className="peer sr-only"
         />
         <span
-          className="absolute h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-blue-500 peer-focus:ring-4 peer-focus:ring-blue-200"
+          className="absolute h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-blue-500 peer-focus:ring-4 peer-focus:ring-blue-200 peer-checked:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3)]"
           aria-hidden="true"
         ></span>
         <span
-          className="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5"
+          className="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5 peer-checked:bg-white"
           aria-hidden="true"
         ></span>
       </div>
