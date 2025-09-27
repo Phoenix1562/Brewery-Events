@@ -48,7 +48,7 @@ function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
           />
 
           <motion.div
-            className="relative z-10 w-full max-w-7xl overflow-hidden rounded-[24px] border border-white/40 bg-gradient-to-br from-white/95 to-white/80 shadow-[0_28px_84px_-48px_rgba(15,23,42,0.6)] backdrop-blur-xl"
+            className="relative z-10 w-full max-w-[88rem] overflow-hidden rounded-[24px] border border-white/40 bg-gradient-to-br from-white/95 to-white/80 shadow-[0_28px_84px_-48px_rgba(15,23,42,0.6)] backdrop-blur-xl"
             initial={{ opacity: 0, y: 32, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 32, scale: 0.97 }}

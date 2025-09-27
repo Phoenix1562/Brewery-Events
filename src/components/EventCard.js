@@ -4,12 +4,24 @@ import { uploadFile, deleteFile } from '../firebase';
 import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign, Info } from 'lucide-react';
 
 // LabeledInput component (remains the same)
-function LabeledInput({ label, type, value, onChange, placeholder, disabled, id, icon, ...rest }) {
+function LabeledInput({
+  label,
+  type,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  id,
+  icon,
+  containerClassName = '',
+  labelClassName = '',
+  ...rest
+}) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${containerClassName}`}>
       <label
         htmlFor={id}
-        className="flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
+        className={`flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500 ${labelClassName}`}
       >
         {icon && React.cloneElement(icon, { size: 14, className: 'text-slate-400' })}
         <span className="whitespace-normal leading-snug">{label}</span>
@@ -251,7 +263,7 @@ function EventCard(props, ref) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-6 lg:grid-cols-[1.05fr_1.35fr_0.95fr] lg:gap-8">
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_1.15fr_1fr] lg:gap-8 xl:grid-cols-[1.45fr_1.2fr_1fr] xl:gap-10">
         <SectionCard
           icon={Info}
           accentColor="bg-blue-50 text-blue-600"
@@ -337,6 +349,8 @@ function EventCard(props, ref) {
               onChange={(e) => handleChange('numberOfGuests', e.target.value)}
               placeholder="e.g., 50"
               min="0"
+              containerClassName="sm:col-span-2 sm:mx-auto sm:max-w-[220px]"
+              labelClassName="sm:justify-center sm:text-center"
             />
           </div>
         </SectionCard>
@@ -357,6 +371,7 @@ function EventCard(props, ref) {
               placeholder="0.00"
               min="0"
               step="0.01"
+              labelClassName="sm:flex sm:min-h-[2.5rem] sm:items-end"
             />
             <LabeledInput
               id={`downPaymentRequired-${eventId}`}
@@ -367,6 +382,7 @@ function EventCard(props, ref) {
               placeholder="0.00"
               min="0"
               step="0.01"
+              labelClassName="sm:flex sm:min-h-[2.5rem] sm:items-end"
             />
             <ToggleInput
               id={`downPaymentReceived-${eventId}`}
@@ -431,6 +447,8 @@ function EventCard(props, ref) {
               value={currentEvent.finalPaymentReceivedDate || ''}
               onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
               disabled={!currentEvent.finalPaymentReceived}
+              containerClassName="sm:col-span-2 sm:mx-auto sm:max-w-[220px]"
+              labelClassName="sm:justify-center sm:text-center"
             />
           </div>
         </SectionCard>
