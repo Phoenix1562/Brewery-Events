@@ -92,11 +92,15 @@ function ToggleInput({ label, checked, onChange, id, disabled, description, clas
 }
 
 function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', title, description, children, className = '' }) {
+  const showDescription = Boolean(description);
+
   return (
     <section
       className={`flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] backdrop-blur ${className}`}
     >
-      <header className="flex items-start gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-5">
+      <header
+        className={`flex items-center gap-4 border-b border-slate-200/80 bg-white/90 px-6 ${showDescription ? 'py-5' : 'py-4'}`}
+      >
         {Icon && (
           <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${accentColor}`}>
             <Icon size={18} />
@@ -104,7 +108,7 @@ function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', 
         )}
         <div className="min-w-0">
           <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-          {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+          {showDescription && <p className="mt-1 text-sm text-slate-500">{description}</p>}
         </div>
       </header>
       <div className="flex-1 px-6 py-6">{children}</div>
@@ -246,13 +250,12 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr_0.95fr] lg:gap-7">
+    <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-[1.05fr_1.35fr_0.95fr] lg:gap-8">
         <SectionCard
           icon={Info}
           accentColor="bg-blue-50 text-blue-600"
           title="Event Overview"
-          description="Schedule and guest details at a glance."
           className="lg:col-span-1"
         >
           <div className="grid gap-5 sm:grid-cols-2">
@@ -342,7 +345,6 @@ function EventCard(props, ref) {
           icon={DollarSign}
           accentColor="bg-emerald-50 text-emerald-600"
           title="Payment Tracking"
-          description="Monitor deposits and outstanding balances."
           className="lg:col-span-1"
         >
           <div className="grid gap-5 sm:grid-cols-2">
@@ -437,7 +439,6 @@ function EventCard(props, ref) {
           icon={FileText}
           accentColor="bg-violet-50 text-violet-600"
           title="Notes & Files"
-          description="Capture context and share supporting docs."
           className="lg:col-span-1"
         >
           <div className="flex h-full flex-col gap-6">

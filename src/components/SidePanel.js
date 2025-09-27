@@ -5,6 +5,7 @@ import { X } from 'lucide-react'; // Import X icon from lucide-react
 
 function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
   const [isVisible, setIsVisible] = useState(isOpen);
+  const hasTitle = Boolean(title);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,19 +55,24 @@ function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
             transition={{ type: 'spring', stiffness: 220, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/40 bg-white/70 px-6 py-4 backdrop-blur">
-              <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
-              <button
-                onClick={handleClose}
-                className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
-                aria-label="Close panel"
-              >
-                <X size={24} />
-              </button>
-            </div>
+            <button
+              onClick={handleClose}
+              className="absolute right-6 top-6 rounded-full bg-white/80 p-1.5 text-slate-500 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+              aria-label="Close panel"
+            >
+              <X size={24} />
+            </button>
 
-            <div className="max-h-[calc(100vh-3.75rem)] overflow-y-auto bg-transparent">
-              <div className="w-full bg-white/70 px-6 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-12 xl:px-16">
+            {hasTitle && (
+              <div className="flex items-center border-b border-white/40 bg-white/70 px-6 py-4 pr-16 backdrop-blur">
+                <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+              </div>
+            )}
+
+            <div className={`max-h-[calc(100vh-3.75rem)] overflow-y-auto bg-transparent ${hasTitle ? '' : 'pt-2'}`}>
+              <div
+                className={`w-full bg-white/70 px-6 pb-6 sm:px-8 sm:pb-8 lg:px-12 lg:pb-12 xl:px-16 ${hasTitle ? 'pt-6 sm:pt-8 lg:pt-10' : 'pt-8 sm:pt-10 lg:pt-12'}`}
+              >
                 {children}
               </div>
             </div>

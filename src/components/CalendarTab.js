@@ -555,7 +555,7 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
         <SidePanel
           isOpen={isEventPanelOpen}
           onClose={handlePanelCloseRequest}
-          title={`Event Details: ${selectedEventForPanel.eventName || 'Unnamed Event'}`}
+          title={null}
         >
           <EventCard
             ref={eventCardRef}
