@@ -102,25 +102,25 @@ function UpcomingTab({ events, onSelectEvent }) {
 
       {(events || []).length > 0 && (
         <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-[#FF5A5F]/20 bg-[#FFF5F7] px-4 py-3 shadow-inner">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF5A5F]/10">
-              <CheckCircle className="h-5 w-5 text-[#FF5A5F]" />
+          <div className="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 shadow-inner">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100">
+              <CheckCircle className="h-5 w-5 text-rose-500" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-[#FF5A5F]">Pipeline</p>
+              <p className="text-xs uppercase tracking-wide text-rose-500">Pipeline</p>
               <p className="font-semibold text-gray-700">{(events || []).length} upcoming {(events || []).length === 1 ? 'event' : 'events'}</p>
             </div>
           </div>
 
           {/* Adjusted to use firstEventTitle which checks for eventName first */}
           {firstEventDate && sortedEvents.length > 0 && (
-            <div className="flex items-center gap-3 rounded-xl border border-[#FF5A5F]/20 bg-[#FFF5F7] px-4 py-3 shadow-inner">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF5A5F]/10">
-                <AlertCircle className="h-5 w-5 text-[#FF5A5F]" />
+            <div className="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 shadow-inner">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100">
+                <AlertCircle className="h-5 w-5 text-rose-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-[#FF5A5F]">Next up</p>
-                <p className="font-semibold text-[#FF5A5F] truncate">
+                <p className="text-xs uppercase tracking-wide text-rose-500">Next up</p>
+                <p className="font-semibold text-rose-500 truncate">
                   {nextEventCountdown}: {firstEventTitle}
                 </p>
               </div>

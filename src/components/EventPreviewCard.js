@@ -21,13 +21,6 @@ function EventPreviewCard({ event, onClick, highlight }) {
     return date.toLocaleDateString('en-US', { weekday: 'long' });
   };
 
-  const getInitials = (value) => {
-    if (!value) return 'EV';
-    const parts = value.trim().split(' ').filter(Boolean);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  };
-
   const formatCurrency = (value) => {
     if (!value || Number.isNaN(Number(value))) return null;
     const numberValue = typeof value === 'string' ? Number(value) : value;
@@ -60,25 +53,20 @@ function EventPreviewCard({ event, onClick, highlight }) {
   return (
     <div
       className={`relative overflow-hidden rounded-xl border border-gray-200 bg-white/80 backdrop-blur transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5
-        ${highlight ? 'ring-2 ring-offset-2 ring-[#FF5A5F]' : ''}
+        ${highlight ? 'ring-2 ring-offset-2 ring-[#FF5A5F]/40' : ''}
         ${hasPaymentIssue ? 'border-amber-200' : ''}`}
       onClick={onClick}
     >
       <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FF5A5F]/15 to-orange-200/40 text-[#FF5A5F] font-semibold">
-              {getInitials(event.clientName || event.eventName)}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {event.clientName || 'No Client'}
-              </p>
-              <p className="text-xs text-gray-500 truncate flex items-center gap-1">
-                <ClipboardList className="h-3.5 w-3.5 text-gray-400" />
-                {event.eventName || 'No Event Name'}
-              </p>
-            </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {event.clientName || 'No Client'}
+            </p>
+            <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+              <ClipboardList className="h-3.5 w-3.5 text-gray-400" />
+              {event.eventName || 'No Event Name'}
+            </p>
           </div>
 
           <div className={`hidden sm:flex items-center gap-2 text-xs font-medium ${chipColor} px-3 py-1 rounded-full whitespace-nowrap`}>
