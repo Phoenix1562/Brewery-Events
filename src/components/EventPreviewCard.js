@@ -1,56 +1,107 @@
 import React from 'react';
-import { DollarSign, Calendar } from 'lucide-react';
+import { DollarSign, Calendar, ClipboardList, User2 } from 'lucide-react';
 
 function EventPreviewCard({ event, onClick, highlight }) {
-  // Format date to be more readable
   const formatDate = (dateString) => {
     if (!dateString) return 'No Date';
     const [year, month, day] = dateString.split('T')[0].split('-');
     const date = new Date(year, month - 1, day);
-    
+
     return date.toLocaleDateString('en-US', {
-      month: 'short',
+      month: 'long',
       day: 'numeric',
       year: 'numeric'
     });
   };
 
-  // Check payment status
+  const formatWeekday = (dateString) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  const formatCurrency = (value) => {
+    if (!value || Number.isNaN(Number(value))) return null;
+    const numberValue = typeof value === 'string' ? Number(value) : value;
+    if (!Number.isFinite(numberValue)) return null;
+    return numberValue.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    });
+  };
+
   const needsDownPayment = event.downPaymentRequired > 0 && !event.downPaymentReceived;
   const needsFinalPayment = event.grandTotal > 0 && !event.finalPaymentReceived;
   const hasPaymentIssue = needsDownPayment || needsFinalPayment;
+  const paymentLabel = needsDownPayment
+    ? 'Down payment due'
+    : needsFinalPayment
+      ? 'Final payment due'
+      : null;
+
+  const chipColor = 'bg-indigo-500/10 text-indigo-600';
+
+  const formattedTotal = formatCurrency(event.grandTotal || event.priceGiven);
 
   return (
     <div
-      className={`laptop:p-2 p-3 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition 
-      ${highlight ? 'border-l-4 border-blue-500' : ''} 
-      ${hasPaymentIssue ? 'border-r-2 border-r-amber-400' : ''}`}
+      className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5
+        ${highlight ? 'ring-2 ring-offset-2 ring-indigo-500/25' : ''}
+        ${hasPaymentIssue ? 'border-rose-200' : ''}`}
       onClick={onClick}
     >
-      <div className="flex justify-between items-center">
-        <h3 className="font-semibold text-gray-800 truncate laptop:text-sm text-base">
-          {event.clientName || 'No Client'}
-        </h3>
-        {hasPaymentIssue && (
-          <span className="text-amber-500" title="Payment needed">
-            <DollarSign size={16} className="laptop:w-4 laptop:h-4" />
-          </span>
-        )}
-      </div>
-      
-      <p className="text-gray-600 laptop:text-xs text-sm truncate">
-        {event.eventName || 'No Event Name'}
-      </p>
-      
-      <div className="flex items-center justify-between mt-1 laptop:text-xs text-sm">
-        <div className="flex items-center text-gray-500">
-          <Calendar size={14} className="mr-1 laptop:w-3 laptop:h-3" />
-          {formatDate(event.eventDate)}
+      <div className="p-4 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-semibold text-slate-900 truncate">
+              {event.clientName || 'No Client'}
+            </p>
+            <p className="flex items-center gap-1 text-xs text-slate-500 truncate">
+              <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
+              {event.eventName || 'No Event Name'}
+            </p>
+          </div>
+
+          <div className={`hidden sm:flex items-center gap-2 text-xs font-medium ${chipColor} px-3 py-1 rounded-full whitespace-nowrap`}>
+            {event.status ? event.status.charAt(0).toUpperCase() + event.status.slice(1) : 'Event'}
+          </div>
         </div>
-        
-        {hasPaymentIssue && (
-          <div className="text-amber-500 font-medium laptop:text-xs text-sm">
-            {needsDownPayment ? 'Down payment due' : 'Final payment due'}
+
+        <div className="grid grid-cols-1 gap-3 text-xs text-slate-500 sm:grid-cols-3">
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <Calendar className="h-4 w-4 text-indigo-500" />
+            <div>
+              <p className="font-medium text-slate-800">{formatDate(event.eventDate)}</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">{formatWeekday(event.eventDate)}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <User2 className="h-4 w-4 text-indigo-500" />
+            <div className="truncate">
+              <p className="font-medium text-slate-800 truncate">{event.buildingArea || 'To be determined'}</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">Space</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <DollarSign className="h-4 w-4 text-indigo-500" />
+            <div>
+              <p className="font-medium text-slate-800">{formattedTotal || 'Not set'}</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">Total</p>
+            </div>
+          </div>
+        </div>
+
+        {hasPaymentIssue && paymentLabel && (
+          <div className="flex items-center justify-between rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+            <div className="flex items-center gap-2 font-medium">
+              <DollarSign className="h-3.5 w-3.5" />
+              {paymentLabel}
+            </div>
+            <span className="font-semibold">Action needed</span>
           </div>
         )}
       </div>

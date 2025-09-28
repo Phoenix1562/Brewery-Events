@@ -1,50 +1,66 @@
 // components/MaybeTab.js
 import React from 'react';
 import EventPreviewCard from './EventPreviewCard';
+import TabHeader from './TabHeader';
 import { PlusCircle, Calendar, Clock } from 'lucide-react';
 
 function MaybeTab({ events, addEvent, onSelectEvent }) {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <Clock className="h-6 w-6 text-amber-500 mr-2" />
-          <h2 className="text-2xl font-bold text-gray-800">Pending Events</h2>
-        </div>
-        
-        <button
-          onClick={addEvent}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span>New Event</span>
-        </button>
-      </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <TabHeader
+        icon={<Clock className="h-7 w-7 text-indigo-500" />}
+        title="Pending Events"
+        actions={
+          <button
+            onClick={addEvent}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
+          >
+            <PlusCircle className="h-5 w-5" />
+            <span>New Event</span>
+          </button>
+        }
+      />
       
       {/* Counter badge */}
       {events.length > 0 && (
-        <div className="mb-6 flex">
-          <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium">
-            {events.length} pending {events.length === 1 ? 'event' : 'events'}
+        <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">In review</p>
+              <p className="font-semibold text-slate-800">{events.length} pending {events.length === 1 ? 'event' : 'events'}</p>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Convert quickly</p>
+              <p className="text-sm text-slate-600">Move confirmed bookings to Upcoming</p>
+            </div>
           </div>
         </div>
       )}
 
       {/* Event list */}
       {events.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">No pending events</p>
+        <div className="rounded-lg bg-slate-100 py-12 text-center">
+          <Calendar className="mx-auto mb-4 h-12 w-12 text-slate-400" />
+          <p className="mb-2 text-slate-500">No pending events</p>
           <button
             onClick={addEvent}
-            className="mt-4 inline-flex items-center text-amber-600 hover:text-amber-700 font-medium"
+            className="mt-4 inline-flex items-center font-medium text-indigo-600 transition-colors hover:text-indigo-700"
           >
-            <PlusCircle className="h-4 w-4 mr-1" />
+            <PlusCircle className="mr-1 h-4 w-4" />
             Create your first event
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {events.map(event => (
             <EventPreviewCard
               key={event.id}

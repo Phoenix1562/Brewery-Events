@@ -5,76 +5,79 @@ import { X } from 'lucide-react'; // Import X icon from lucide-react
 
 function SidePanel({ isOpen, onClose, children, title = 'Details' }) {
   const [isVisible, setIsVisible] = useState(isOpen);
-  
-  // Handle open/close states
+  const hasTitle = Boolean(title);
+
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      // Prevent scrolling on the body when the panel is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
+      setIsVisible(false);
     }
-    
-    // Cleanup: restore scrolling on unmount
+
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isOpen]);
 
-  // Handle the close with animation
   const handleClose = () => {
     setIsVisible(false);
-    // Call onClose only after animation completes
     setTimeout(() => {
       onClose();
-    }, 300); // Make sure this duration matches your animation timing
+    }, 280);
   };
 
   return (
     <AnimatePresence>
       {isVisible && (
-        <>
-          {/* Backdrop with blur effect */}
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <motion.div
-  className="fixed inset-0 bg-black/50 z-40"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  exit={{ opacity: 0 }}
-  onClick={handleClose}
-/>
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={handleClose}
+          />
 
-          {/* Side Panel */}
           <motion.div
-            className="fixed top-0 right-0 h-full max-w-full w-full md:w-5/6 lg:w-3/4 xl:w-3/5 bg-white shadow-lg z-50 flex flex-col"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ 
-              type: 'spring', 
-              stiffness: 300, 
-              damping: 30,
-              duration: 0.3
-            }}
+            className="relative z-10 w-full max-w-[88rem] overflow-hidden rounded-[24px] border border-white/40 bg-gradient-to-br from-white/95 to-white/80 shadow-[0_28px_84px_-48px_rgba(15,23,42,0.6)] backdrop-blur-xl"
+            initial={{ opacity: 0, y: 32, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 32, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b p-4">
-              <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-              <button 
-                onClick={handleClose}
-                className="p-2 rounded-full hover:bg-gray-100 transition"
-                aria-label="Close panel"
+            <button
+              onClick={handleClose}
+              className="absolute right-6 top-6 rounded-full bg-white/80 p-1.5 text-slate-500 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+              aria-label="Close panel"
+            >
+              <X size={24} />
+            </button>
+
+            {hasTitle && (
+              <div className="flex items-center border-b border-white/40 bg-white/70 px-6 py-4 pr-16 backdrop-blur">
+                <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+              </div>
+            )}
+
+            <div className={`max-h-[calc(100vh-3.75rem)] overflow-y-auto bg-transparent ${hasTitle ? '' : 'pt-2'}`}>
+              <div
+                className={`w-full bg-white/70 px-6 pb-6 sm:px-8 sm:pb-8 lg:px-12 lg:pb-12 xl:px-16 ${hasTitle ? 'pt-6 sm:pt-8 lg:pt-10' : 'pt-8 sm:pt-10 lg:pt-12'}`}
               >
-                <X size={24} />
-              </button>
-            </div>
-            
-            {/* Content - scrollable area */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {children}
+                {children}
+              </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
