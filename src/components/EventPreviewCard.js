@@ -22,34 +22,32 @@ function EventPreviewCard({ event, onClick, highlight }) {
 
   return (
     <div
-      className={`laptop:p-2 p-3 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition 
-      ${highlight ? 'border-l-4 border-blue-500' : ''} 
-      ${hasPaymentIssue ? 'border-r-2 border-r-amber-400' : ''}`}
+      className={`laptop:p-2 p-3 rounded-xl border border-surface-600 bg-surface-800 text-surface-100 shadow-sm transition-colors cursor-pointer hover:border-accent-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-900 ${highlight ? 'ring-2 ring-accent-400 ring-offset-2 ring-offset-surface-900' : ''} ${hasPaymentIssue ? 'border-l-4 border-amber-400/80 laptop:pl-1.5 pl-2' : ''}`}
       onClick={onClick}
     >
       <div className="flex justify-between items-center">
-        <h3 className="font-semibold text-gray-800 truncate laptop:text-sm text-base">
+        <h3 className="font-semibold text-surface-50 truncate laptop:text-sm text-base">
           {event.clientName || 'No Client'}
         </h3>
         {hasPaymentIssue && (
-          <span className="text-amber-500" title="Payment needed">
+          <span className="text-amber-300" title="Payment needed">
             <DollarSign size={16} className="laptop:w-4 laptop:h-4" />
           </span>
         )}
       </div>
-      
-      <p className="text-gray-600 laptop:text-xs text-sm truncate">
+
+      <p className="text-surface-200 laptop:text-xs text-sm truncate">
         {event.eventName || 'No Event Name'}
       </p>
-      
+
       <div className="flex items-center justify-between mt-1 laptop:text-xs text-sm">
-        <div className="flex items-center text-gray-500">
-          <Calendar size={14} className="mr-1 laptop:w-3 laptop:h-3" />
+        <div className="flex items-center text-surface-200">
+          <Calendar size={14} className="mr-1 laptop:w-3 laptop:h-3 text-accent-200" />
           {formatDate(event.eventDate)}
         </div>
-        
+
         {hasPaymentIssue && (
-          <div className="text-amber-500 font-medium laptop:text-xs text-sm">
+          <div className="text-amber-200 font-medium laptop:text-xs text-sm">
             {needsDownPayment ? 'Down payment due' : 'Final payment due'}
           </div>
         )}
