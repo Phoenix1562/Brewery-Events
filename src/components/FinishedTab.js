@@ -135,15 +135,15 @@ function FinishedTab({ events, onSelectEvent }) {
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       {/* Header with filter toggle */}
       <TabHeader
-        icon={<Calendar className="h-7 w-7 text-indigo-600" />}
+        icon={<Calendar className="h-7 w-7 text-indigo-500" />}
         title="Finished Events"
         actions={
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-1 px-2 py-1 text-sm bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+            className="flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-sm text-indigo-600 transition-colors hover:bg-indigo-100"
           >
             <Filter className="h-4 w-4" />
             <span>{showFilters ? 'Hide Filters' : 'Filters'}</span>
@@ -152,22 +152,22 @@ function FinishedTab({ events, onSelectEvent }) {
       />
 
       {/* Compact search bar */}
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <input
             type="text"
             placeholder="Search in finished events..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-8 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full rounded-full border border-slate-200 bg-white py-2 pl-11 pr-11 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              className="absolute right-4 top-1/2 -translate-y-1/2 transform text-slate-400 transition hover:text-slate-600"
             >
-              <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -175,13 +175,13 @@ function FinishedTab({ events, onSelectEvent }) {
 
       {/* Expandable filters - more compact */}
       {showFilters && (
-        <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm">
+        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium text-gray-700">Filter Options</h3>
             {(selectedYear || selectedMonth || startDate || endDate || searchQuery) && (
-              <button 
+              <button
                 onClick={clearFilters}
-                className="text-xs text-indigo-600 hover:text-indigo-800"
+                className="text-xs text-indigo-600 transition-colors hover:text-indigo-700"
               >
                 Clear filters
               </button>
@@ -191,22 +191,22 @@ function FinishedTab({ events, onSelectEvent }) {
           {/* Filter Mode Toggle - more compact */}
           <div className="mb-3">
             <div className="inline-flex rounded-md shadow-sm" role="group">
-              <button 
+              <button
                 onClick={() => setFilterMode('month')}
                 className={`px-3 py-1 text-xs font-medium rounded-l-lg ${
-                  filterMode === 'month' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'
+                  filterMode === 'month'
+                    ? 'bg-indigo-600 text-white'
+                    : 'border border-slate-200 bg-white text-gray-700 hover:bg-slate-100'
                 }`}
               >
                 Month View
               </button>
-              <button 
+              <button
                 onClick={() => setFilterMode('range')}
                 className={`px-3 py-1 text-xs font-medium rounded-r-lg ${
-                  filterMode === 'range' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'
+                  filterMode === 'range'
+                    ? 'bg-indigo-600 text-white'
+                    : 'border border-slate-200 bg-white text-gray-700 hover:bg-slate-100'
                 }`}
               >
                 Date Range
@@ -222,7 +222,7 @@ function FinishedTab({ events, onSelectEvent }) {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="w-full py-1 text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-slate-200 py-1 text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
                 >
                   <option value="">All Years</option>
                   {availableYears.map(year => (
@@ -235,7 +235,7 @@ function FinishedTab({ events, onSelectEvent }) {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full py-1 text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-slate-200 py-1 text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
                 >
                   <option value="">All Months</option>
                   {availableMonths.map((month, index) => (
@@ -248,20 +248,20 @@ function FinishedTab({ events, onSelectEvent }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">From</label>
-                <input 
+                <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full py-1 text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-slate-200 py-1 text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">To</label>
-                <input 
+                <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full py-1 text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-slate-200 py-1 text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
                 />
               </div>
             </div>
@@ -270,39 +270,47 @@ function FinishedTab({ events, onSelectEvent }) {
       )}
 
       {/* Results Summary - more compact */}
-      <div className="mb-3">
-        <div className="bg-indigo-50 px-3 py-1.5 rounded-lg text-sm">
-          <span className="text-indigo-700 font-medium">
-            {groupedEvents.count} {groupedEvents.count === 1 ? 'event' : 'events'} found
-          </span>
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-3 text-sm">
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Archive</p>
+              <p className="font-semibold text-slate-800">{groupedEvents.count} {groupedEvents.count === 1 ? 'event' : 'events'} found</p>
+            </div>
+          </div>
+
           {(selectedYear || selectedMonth || startDate || endDate || searchQuery) && (
-            <span className="text-indigo-500 ml-2 text-xs">
-              (filtered)
-            </span>
+            <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-xs font-medium text-indigo-600">
+              <Filter className="h-4 w-4" />
+              Filters active
+            </div>
           )}
         </div>
       </div>
 
       {/* Event list - more compact */}
-      {groupedEvents.count === 0 ? (
-        <div className="text-center py-6 bg-gray-50 rounded-lg">
-          <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">No finished events found</p>
-          {(selectedYear || selectedMonth || startDate || endDate || searchQuery) && (
-            <p className="text-xs text-gray-400">Try adjusting your filter settings</p>
-          )}
-        </div>
-      ) : (
+        {groupedEvents.count === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+            <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+            <p className="text-sm text-slate-500">No finished events found</p>
+            {(selectedYear || selectedMonth || startDate || endDate || searchQuery) && (
+              <p className="text-xs text-slate-400">Try adjusting your filter settings</p>
+            )}
+          </div>
+        ) : (
         <div className="space-y-3">
           {Object.keys(groupedEvents.groups).sort((a, b) => b - a).map(year => (
-            <div key={year} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div key={year} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               <button
                 onClick={() => toggleYearExpand(year)}
-                className="w-full flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100"
               >
-                <h3 className="font-medium text-base text-gray-800">{year}</h3>
+                <h3 className="text-base font-semibold text-gray-800">{year}</h3>
                 <div className="flex items-center">
-                  <span className="text-xs text-gray-500 mr-2">
+                  <span className="mr-2 text-xs text-gray-500">
                     {Object.values(groupedEvents.groups[year]).flat().length} events
                   </span>
                   {expandedYears[year] ? (
@@ -314,7 +322,7 @@ function FinishedTab({ events, onSelectEvent }) {
               </button>
               
               {expandedYears[year] && (
-                <div className="p-2 space-y-2">
+                <div className="space-y-3 p-4">
                   {Object.keys(groupedEvents.groups[year])
                     .sort((a, b) => b - a) // Sort months newest first
                     .map(month => {
@@ -323,12 +331,12 @@ function FinishedTab({ events, onSelectEvent }) {
                       const monthExpanded = expandedMonths[year]?.[month];
                       const eventCountLabel = `${eventsForMonth.length} ${eventsForMonth.length === 1 ? 'event' : 'events'}`;
                       return (
-                        <div key={`${year}-${month}`} className="border border-gray-200 rounded-md overflow-hidden bg-white">
+                        <div key={`${year}-${month}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                           <button
                             onClick={() => toggleMonthExpand(year, month)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-slate-50"
                           >
-                            <span className="font-medium text-sm text-gray-700">{monthNames[monthIndex]} {year}</span>
+                            <span className="text-sm font-semibold text-gray-700">{monthNames[monthIndex]} {year}</span>
                             <div className="flex items-center text-xs text-gray-500">
                               <span className="mr-2">{eventCountLabel}</span>
                               {monthExpanded ? (
@@ -339,7 +347,7 @@ function FinishedTab({ events, onSelectEvent }) {
                             </div>
                           </button>
                           {monthExpanded && (
-                            <div className="p-2 bg-gray-50 space-y-2">
+                            <div className="grid gap-3 bg-slate-50 px-4 py-4 sm:grid-cols-2 xl:grid-cols-3">
                               {eventsForMonth.map(event => (
                                 <EventPreviewCard
                                   key={event.id}
@@ -363,3 +371,4 @@ function FinishedTab({ events, onSelectEvent }) {
 }
 
 export default FinishedTab;
+
