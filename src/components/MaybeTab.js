@@ -8,12 +8,12 @@ function MaybeTab({ events, addEvent, onSelectEvent }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <TabHeader
-        icon={<Clock className="h-7 w-7 text-sky-500" />}
+        icon={<Clock className="h-7 w-7 text-indigo-500" />}
         title="Pending Events"
         actions={
           <button
             onClick={addEvent}
-            className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-sky-600"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
           >
             <PlusCircle className="h-5 w-5" />
             <span>New Event</span>
@@ -24,18 +24,18 @@ function MaybeTab({ events, addEvent, onSelectEvent }) {
       {/* Counter badge */}
       {events.length > 0 && (
         <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
               <Clock className="h-5 w-5" />
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">In review</p>
-              <p className="font-semibold text-slate-700">{events.length} pending {events.length === 1 ? 'event' : 'events'}</p>
+              <p className="font-semibold text-slate-800">{events.length} pending {events.length === 1 ? 'event' : 'events'}</p>
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+          <div className="hidden sm:flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
               <Calendar className="h-5 w-5" />
             </div>
             <div>
@@ -48,12 +48,12 @@ function MaybeTab({ events, addEvent, onSelectEvent }) {
 
       {/* Event list */}
       {events.length === 0 ? (
-        <div className="rounded-lg bg-slate-50 py-12 text-center">
+        <div className="rounded-lg bg-slate-100 py-12 text-center">
           <Calendar className="mx-auto mb-4 h-12 w-12 text-slate-400" />
           <p className="mb-2 text-slate-500">No pending events</p>
           <button
             onClick={addEvent}
-            className="mt-4 inline-flex items-center font-medium text-sky-600 transition-colors hover:text-sky-700"
+            className="mt-4 inline-flex items-center font-medium text-indigo-600 transition-colors hover:text-indigo-700"
           >
             <PlusCircle className="mr-1 h-4 w-4" />
             Create your first event

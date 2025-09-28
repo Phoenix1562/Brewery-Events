@@ -76,23 +76,23 @@ function UpcomingTab({ events, onSelectEvent }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <TabHeader
-        icon={<CalendarClock className="h-7 w-7 text-sky-500" />}
+        icon={<CalendarClock className="h-7 w-7 text-indigo-500" />}
         title="Upcoming Events"
       />
 
       <div className="relative mb-6">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-slate-400" />
         <input
           type="text"
           placeholder="Search events, people..."
-          className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-12 pr-12 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+          className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-12 pr-12 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 transform text-gray-400 transition hover:text-gray-600"
+            className="absolute right-4 top-1/2 -translate-y-1/2 transform text-slate-400 transition hover:text-slate-600"
             aria-label="Clear search"
           >
             <X className="h-5 w-5" />
@@ -102,25 +102,25 @@ function UpcomingTab({ events, onSelectEvent }) {
 
       {(events || []).length > 0 && (
         <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
               <CheckCircle className="h-5 w-5" />
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">Pipeline</p>
-              <p className="font-semibold text-slate-700">{(events || []).length} upcoming {(events || []).length === 1 ? 'event' : 'events'}</p>
+              <p className="font-semibold text-slate-800">{(events || []).length} upcoming {(events || []).length === 1 ? 'event' : 'events'}</p>
             </div>
           </div>
 
           {/* Adjusted to use firstEventTitle which checks for eventName first */}
           {firstEventDate && sortedEvents.length > 0 && (
-            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-500">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-900/5 px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Next up</p>
-                <p className="font-semibold text-sky-600 truncate">
+                <p className="font-semibold text-indigo-600 truncate">
                   {nextEventCountdown}: {firstEventTitle}
                 </p>
               </div>
@@ -130,7 +130,7 @@ function UpcomingTab({ events, onSelectEvent }) {
       )}
 
       {filteredEvents.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-100 py-12 text-center">
           <CalendarClock className="mx-auto mb-3 h-12 w-12 text-slate-300" />
           <p className="text-sm text-slate-500">{searchTerm ? "No events match your search." : "No upcoming events"}</p>
         </div>
@@ -139,7 +139,7 @@ function UpcomingTab({ events, onSelectEvent }) {
           {Object.entries(groupedEvents).map(([monthYear, monthEvents]) => (
             <div key={monthYear}>
               <h3 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
                 {monthYear}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

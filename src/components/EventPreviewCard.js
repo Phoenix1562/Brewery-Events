@@ -41,25 +41,25 @@ function EventPreviewCard({ event, onClick, highlight }) {
       ? 'Final payment due'
       : null;
 
-  const chipColor = 'bg-slate-100 text-slate-600';
+  const chipColor = 'bg-indigo-500/10 text-indigo-600';
 
   const formattedTotal = formatCurrency(event.grandTotal || event.priceGiven);
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5
-        ${highlight ? 'ring-2 ring-offset-2 ring-sky-400/30' : ''}
-        ${hasPaymentIssue ? 'border-sky-200' : ''}`}
+      className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5
+        ${highlight ? 'ring-2 ring-offset-2 ring-indigo-500/25' : ''}
+        ${hasPaymentIssue ? 'border-rose-200' : ''}`}
       onClick={onClick}
     >
       <div className="p-4 space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p className="text-sm font-semibold text-slate-900 truncate">
               {event.clientName || 'No Client'}
             </p>
-            <p className="text-xs text-gray-500 truncate flex items-center gap-1">
-              <ClipboardList className="h-3.5 w-3.5 text-gray-400" />
+            <p className="flex items-center gap-1 text-xs text-slate-500 truncate">
+              <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
               {event.eventName || 'No Event Name'}
             </p>
           </div>
@@ -70,33 +70,33 @@ function EventPreviewCard({ event, onClick, highlight }) {
         </div>
 
         <div className="grid grid-cols-1 gap-3 text-xs text-slate-500 sm:grid-cols-3">
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <Calendar className="h-4 w-4 text-sky-500" />
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <Calendar className="h-4 w-4 text-indigo-500" />
             <div>
-              <p className="font-medium text-slate-700">{formatDate(event.eventDate)}</p>
+              <p className="font-medium text-slate-800">{formatDate(event.eventDate)}</p>
               <p className="text-[11px] uppercase tracking-wide text-slate-400">{formatWeekday(event.eventDate)}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <User2 className="h-4 w-4 text-sky-500" />
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <User2 className="h-4 w-4 text-indigo-500" />
             <div className="truncate">
-              <p className="font-medium text-slate-700 truncate">{event.buildingArea || 'To be determined'}</p>
+              <p className="font-medium text-slate-800 truncate">{event.buildingArea || 'To be determined'}</p>
               <p className="text-[11px] uppercase tracking-wide text-slate-400">Space</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <DollarSign className="h-4 w-4 text-sky-500" />
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-900/5 px-3 py-2">
+            <DollarSign className="h-4 w-4 text-indigo-500" />
             <div>
-              <p className="font-medium text-slate-700">{formattedTotal || 'Not set'}</p>
+              <p className="font-medium text-slate-800">{formattedTotal || 'Not set'}</p>
               <p className="text-[11px] uppercase tracking-wide text-slate-400">Total</p>
             </div>
           </div>
         </div>
 
         {hasPaymentIssue && paymentLabel && (
-          <div className="flex items-center justify-between rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-xs text-sky-700">
+          <div className="flex items-center justify-between rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
             <div className="flex items-center gap-2 font-medium">
               <DollarSign className="h-3.5 w-3.5" />
               {paymentLabel}
