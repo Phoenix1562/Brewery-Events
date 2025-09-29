@@ -57,9 +57,14 @@ function App() {
     fetchEvents();
   }, []);
 
-  const handleSidePanelClose = () => {
+  const handleSidePanelClose = async () => {
     if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-      eventCardRef.current.handleClose(); // This calls EventCard's internal close, which should call setActiveEvent(null)
+      try {
+        await eventCardRef.current.handleClose(); // This calls EventCard's internal close, which should call setActiveEvent(null)
+      } catch (err) {
+        console.error('Error closing event card:', err);
+        setActiveEvent(null); // Ensure panel closes even if the card throws
+      }
     } else {
       setActiveEvent(null); // Fallback if ref or method not available
     }
@@ -134,10 +139,35 @@ function App() {
 };
 
 
-  const moveEvent = async (id, newStatus) => {
-    const eventToUpdate = events.find(event => event.id === id);
-    if (!eventToUpdate) return;
-    const updatedEventData = { // Renamed to avoid conflict with 'updatedEvent' variable name if it's in a broader scope
+  const prepareEventForStatusChange = async (id) => {
+    let baseEvent = events.find(e => e.id === id);
+
+    if (activeEvent && activeEvent.id === id && eventCardRef.current) {
+      try {
+        if (typeof eventCardRef.current.triggerSave === 'function') {
+          await eventCardRef.current.triggerSave();
+        }
+        if (typeof eventCardRef.current.getCurrentEvent === 'function') {
+          baseEvent = eventCardRef.current.getCurrentEvent() || baseEvent;
+        }
+      } catch (err) {
+        console.error('Error saving event before moving:', err);
+      }
+    }
+
+    return baseEvent;
+  };
+
+  const moveEvent = async (eventOrId, newStatus) => {
+    const eventToUpdate =
+      typeof eventOrId === 'object' && eventOrId !== null
+        ? eventOrId
+        : events.find(event => event.id === eventOrId);
+
+    if (!eventToUpdate || !eventToUpdate.id) return;
+
+    const eventId = eventToUpdate.id;
+    const updatedEventData = {
       ...eventToUpdate,
       status: newStatus,
       ...(newStatus === 'finished' &&
@@ -147,30 +177,35 @@ function App() {
       )
     };
     try {
-      await updateDoc(doc(db, "events", id), updatedEventData);
-      setEvents(prev => prev.map(event => (event.id === id ? updatedEventData : event)));
+      await updateDoc(doc(db, "events", eventId), updatedEventData);
+      setEvents(prev => prev.map(event => (event.id === eventId ? updatedEventData : event)));
+      if (activeEvent && activeEvent.id === eventId) {
+        setActiveEvent(null);
+      }
     } catch (err) {
       console.error("Error moving event:", err);
     }
   };
 
-  const handleMoveLeftEvent = (id) => {
-    const event = events.find(e => e.id === id);
+  const handleMoveLeftEvent = async (id) => {
+    const event = await prepareEventForStatusChange(id);
     if (!event) return;
+
     if (event.status === 'upcoming') {
-      moveEvent(id, 'maybe');
+      await moveEvent(event, 'maybe');
     } else if (event.status === 'finished') {
-      moveEvent(id, 'upcoming');
+      await moveEvent(event, 'upcoming');
     }
   };
 
-  const handleMoveRightEvent = (id) => {
-    const event = events.find(e => e.id === id);
+  const handleMoveRightEvent = async (id) => {
+    const event = await prepareEventForStatusChange(id);
     if (!event) return;
+
     if (event.status === 'maybe') {
-      moveEvent(id, 'upcoming');
+      await moveEvent(event, 'upcoming');
     } else if (event.status === 'upcoming') {
-      moveEvent(id, 'finished');
+      await moveEvent(event, 'finished');
     }
   };
 
@@ -280,11 +315,16 @@ function App() {
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-                            eventCardRef.current.handleClose();
+                            try {
+                              await eventCardRef.current.handleClose();
+                            } catch (err) {
+                              console.error('Error saving before closing:', err);
+                              setActiveEvent(null);
+                            }
                           } else {
-                            saveEvent(activeEvent);
+                            await saveEvent(activeEvent);
                             setActiveEvent(null);
                           }
                         }}
