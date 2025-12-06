@@ -171,8 +171,8 @@ function EventCard(props, ref) {
   return (
     <div className="flex flex-col gap-8">
 
-      {/* Header Section: Prominent Inputs */}
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-6">
+      {/* Header Section: Prominent Inputs (Compacted) */}
+      <div className="flex flex-col gap-2 border-b border-slate-200 pb-4">
         <div>
           <input
             type="text"
@@ -231,36 +231,41 @@ function EventCard(props, ref) {
                         </select>
                     </div>
 
-                    <div className="flex gap-4 sm:col-span-2">
-                         <LabeledInput
-                            containerClassName="flex-1"
-                            id={`startTime-${eventId}`}
-                            label="Start"
-                            type="time"
-                            value={currentEvent.startTime || ''}
-                            onChange={(e) => handleChange('startTime', e.target.value)}
-                            disabled={currentEvent.allDay}
-                        />
-                         <LabeledInput
-                            containerClassName="flex-1"
-                            id={`endTime-${eventId}`}
-                            label="End"
-                            type="time"
-                            value={currentEvent.endTime || ''}
-                            onChange={(e) => handleChange('endTime', e.target.value)}
-                            disabled={currentEvent.allDay}
-                        />
-                         <div className="flex items-end pb-3">
-                             <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50">
+                    {/* Compact Time Range Input */}
+                    <div className="flex flex-col gap-1.5 sm:col-span-2">
+                        <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                             <Clock size={14} className="text-slate-400" />
+                             <span>Time</span>
+                        </label>
+                        <div className={`flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-2 transition-all hover:border-slate-300 hover:bg-white focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10 ${currentEvent.allDay ? 'opacity-70' : ''}`}>
+                             <div className="flex flex-1 items-center gap-2">
+                                 <input
+                                    type="time"
+                                    value={currentEvent.startTime || ''}
+                                    onChange={(e) => handleChange('startTime', e.target.value)}
+                                    disabled={currentEvent.allDay}
+                                    className="w-full bg-transparent text-sm font-medium text-slate-800 focus:outline-none disabled:cursor-not-allowed"
+                                 />
+                                 <span className="text-slate-400">→</span>
+                                 <input
+                                    type="time"
+                                    value={currentEvent.endTime || ''}
+                                    onChange={(e) => handleChange('endTime', e.target.value)}
+                                    disabled={currentEvent.allDay}
+                                    className="w-full bg-transparent text-sm font-medium text-slate-800 focus:outline-none disabled:cursor-not-allowed"
+                                 />
+                             </div>
+                             <div className="h-6 w-px bg-slate-200"></div>
+                             <label className="flex cursor-pointer items-center gap-2 px-2">
                                  <input
                                     type="checkbox"
                                     checked={currentEvent.allDay || false}
                                     onChange={(e) => handleChange('allDay', e.target.checked)}
-                                    className="accent-blue-500"
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                  />
-                                 <span className="text-sm font-medium text-slate-600">All Day</span>
+                                 <span className="whitespace-nowrap text-sm font-medium text-slate-600">All Day</span>
                              </label>
-                         </div>
+                        </div>
                     </div>
 
                     <LabeledInput

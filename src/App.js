@@ -342,11 +342,6 @@ function App() {
                     label="Delete"
                     colorClass="bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300"
                  />
-                 <ActionButton
-                    onClick={handleSidePanelClose}
-                    icon={X}
-                    label="Cancel"
-                 />
              </div>
         </div>
     );
