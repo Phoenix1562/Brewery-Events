@@ -263,7 +263,7 @@ function EventCard(props, ref) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1.15fr_1fr] lg:gap-8 xl:grid-cols-[1.45fr_1.2fr_1fr] xl:gap-10">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 xl:grid-cols-3 xl:gap-10">
         <SectionCard
           icon={Info}
           accentColor="bg-blue-50 text-blue-600"
@@ -457,7 +457,7 @@ function EventCard(props, ref) {
           icon={FileText}
           accentColor="bg-violet-50 text-violet-600"
           title="Notes & Files"
-          className="lg:col-span-1"
+          className="lg:col-span-2 xl:col-span-1"
         >
           <div className="flex h-full flex-col gap-6">
             <div className="flex flex-1 flex-col gap-2">
