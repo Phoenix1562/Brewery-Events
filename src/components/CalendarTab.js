@@ -200,9 +200,14 @@ function CalendarTab({ events = [], onEventClick, onEventUpdate }) {
     }
   }, [handleCloseEventPanel]);
 
-  const handlePanelCloseRequest = useCallback(() => {
+  const handlePanelCloseRequest = useCallback(async () => {
     if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-      eventCardRef.current.handleClose();
+      try {
+        await eventCardRef.current.handleClose();
+      } catch (err) {
+        console.error('Error closing event card:', err);
+        handleCloseEventPanel();
+      }
     } else {
       handleCloseEventPanel();
     }

@@ -232,29 +232,29 @@ function EventCard(props, ref) {
     }
   };
 
-  const internalSave = () => {
+  const internalSave = async () => {
     if (onSave) {
-      onSave(localEvent);
+      await onSave(localEvent);
       setIsDirty(false);
     }
   };
 
-  const internalClose = () => {
+  const internalClose = async () => {
     if (isDirty && onSave) {
-      internalSave();
+      await internalSave();
     }
     if (setActiveEvent) setActiveEvent(null);
   };
 
   useImperativeHandle(ref, () => ({
-    handleClose: internalClose,
+    handleClose: () => internalClose(),
     triggerSave: () => {
       if (isDirty) {
-        internalSave();
-      } else {
-        console.log('No changes to save.');
+        return internalSave();
       }
+      return Promise.resolve();
     },
+    getCurrentEvent: () => localEvent,
     isDirty: () => isDirty,
   }));
 

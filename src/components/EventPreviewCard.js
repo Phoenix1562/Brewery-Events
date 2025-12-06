@@ -44,11 +44,14 @@ function EventPreviewCard({ event, onClick, highlight }) {
   const chipColor = 'bg-indigo-500/10 text-indigo-600';
 
   const formattedTotal = formatCurrency(event.grandTotal || event.priceGiven);
+  const highlightStyles = highlight
+    ? `${hasPaymentIssue ? '' : 'border-indigo-200'} bg-indigo-50/40 shadow-md`
+    : '';
 
   return (
     <div
       className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5
-        ${highlight ? 'ring-2 ring-offset-2 ring-indigo-500/25' : ''}
+        ${highlightStyles}
         ${hasPaymentIssue ? 'border-rose-200' : ''}`}
       onClick={onClick}
     >
