@@ -1,9 +1,9 @@
 // components/EventCard.js
-import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
 import { uploadFile, deleteFile } from '../firebase';
-import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign, Info } from 'lucide-react';
+import { Paperclip, Calendar as CalendarIcon, Clock, Users, FileText, DollarSign, Info, MapPin } from 'lucide-react';
 
-// LabeledInput component (remains the same)
+// Enhanced LabeledInput with modern styling
 function LabeledInput({
   label,
   type,
@@ -15,16 +15,17 @@ function LabeledInput({
   icon,
   containerClassName = '',
   labelClassName = '',
+  inputClassName = '',
   ...rest
 }) {
   return (
-    <div className={`flex flex-col gap-2 ${containerClassName}`}>
+    <div className={`flex flex-col gap-1.5 ${containerClassName}`}>
       <label
         htmlFor={id}
-        className={`flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500 ${labelClassName}`}
+        className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 ${labelClassName}`}
       >
         {icon && React.cloneElement(icon, { size: 14, className: 'text-slate-400' })}
-        <span className="whitespace-normal leading-snug">{label}</span>
+        <span>{label}</span>
       </label>
       <input
         id={id}
@@ -33,111 +34,31 @@ function LabeledInput({
         placeholder={placeholder}
         onChange={onChange}
         disabled={disabled}
-        className={`w-full rounded-xl border border-slate-300/80 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-all duration-150 ease-in-out
-          focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 placeholder:text-slate-400
-          ${disabled ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'hover:border-slate-300/90'}`}
+        className={`w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm font-medium text-slate-800 transition-all duration-200
+          placeholder:text-slate-400 hover:border-slate-300 hover:bg-white
+          focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10
+          disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${inputClassName}`}
         {...rest}
       />
     </div>
   );
 }
 
-// ToggleInput component
-function ToggleInput({ label, checked, onChange, id, disabled, description, className = '' }) {
-  const isChecked = Boolean(checked);
+function SectionHeader({ title, icon: Icon, className = '' }) {
   return (
-    <label
-      htmlFor={id}
-      aria-disabled={disabled}
-      className={`group flex w-full items-start justify-between gap-4 rounded-xl border px-4 py-3.5 transition ${
-        isChecked
-          ? 'border-blue-400/80 bg-blue-50/80 shadow-[0_16px_38px_-24px_rgba(37,99,235,0.65)]'
-          : 'border-slate-300/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]'
-      } ${
-        disabled
-          ? 'cursor-not-allowed opacity-70'
-          : 'cursor-pointer hover:border-blue-300 hover:shadow-lg hover:shadow-blue-200/50'
-      } ${className}`}
-    >
-      <div className="min-w-0">
-        <p
-          className={`text-sm font-semibold ${
-            disabled ? 'text-slate-400' : isChecked ? 'text-blue-700' : 'text-slate-700'
-          }`}
-        >
-          {label}
-        </p>
-        {description && (
-          <p
-            className={`mt-1 text-xs ${
-              disabled ? 'text-slate-400' : isChecked ? 'text-blue-600/90' : 'text-slate-500'
-            }`}
-          >
-            {description}
-          </p>
-        )}
-      </div>
-      <div
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center justify-center rounded-full transition ${
-          disabled ? 'cursor-not-allowed' : 'cursor-pointer group-hover:scale-[1.02]'
-        }`}
-      >
-        <input
-          type="checkbox"
-          id={id}
-          checked={checked}
-          onChange={onChange}
-          disabled={disabled}
-          className="peer sr-only"
-        />
-        <span
-          className="absolute h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-blue-500 peer-focus:ring-4 peer-focus:ring-blue-200 peer-checked:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3)]"
-          aria-hidden="true"
-        ></span>
-        <span
-          className="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5 peer-checked:bg-white"
-          aria-hidden="true"
-        ></span>
-      </div>
-    </label>
-  );
-}
-
-function SectionCard({ icon: Icon, accentColor = 'bg-slate-100 text-slate-500', title, description, children, className = '' }) {
-  const showDescription = Boolean(description);
-
-  return (
-    <section
-      className={`flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] backdrop-blur ${className}`}
-    >
-      <header
-        className={`flex items-center gap-4 border-b border-slate-200/80 bg-white/90 px-6 ${showDescription ? 'py-5' : 'py-4'}`}
-      >
-        {Icon && (
-          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${accentColor}`}>
-            <Icon size={18} />
-          </span>
-        )}
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-          {showDescription && <p className="mt-1 text-sm text-slate-500">{description}</p>}
-        </div>
-      </header>
-      <div className="flex-1 px-6 py-6">{children}</div>
-    </section>
+    <div className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${className}`}>
+      {Icon && <Icon size={18} className="text-blue-500" />}
+      <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">{title}</h3>
+    </div>
   );
 }
 
 function EventCard(props, ref) {
-  const {
-    event,
-    onSave,
-    setActiveEvent,
-  } = props;
+  const { event, onSave, setActiveEvent } = props;
 
   const [localEvent, setLocalEvent] = useState(event || {});
   const [isDirty, setIsDirty] = useState(false);
-  const notesTextareaRef = useRef(null); // Ref for the notes textarea
+  const notesTextareaRef = useRef(null);
 
   useEffect(() => {
     const initialEvent = event || {};
@@ -166,21 +87,20 @@ function EventCard(props, ref) {
     setIsDirty(false);
   }, [event]);
 
-  // Effect to auto-adjust textarea height
+  // Auto-resize textarea
   useEffect(() => {
     if (notesTextareaRef.current) {
       const textarea = notesTextareaRef.current;
-      textarea.style.height = 'auto'; // Reset height to accurately calculate scrollHeight
-      textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
-      textarea.style.overflowY = 'hidden'; // Hide scrollbar
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
     }
-  }, [localEvent.notes]); // Re-run when notes content changes
+  }, [localEvent.notes]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isDirty) {
         e.preventDefault();
-        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        e.returnValue = 'You have unsaved changes.';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -192,7 +112,6 @@ function EventCard(props, ref) {
     setIsDirty(true);
   };
 
-  // ... (handleFileUpload, handleDeleteFile, internalSave, internalClose, useImperativeHandle remain the same)
   const handleFileUpload = async (e) => {
     const filesToUpload = Array.from(e.target.files);
     if (!filesToUpload.length) return;
@@ -212,22 +131,15 @@ function EventCard(props, ref) {
   };
 
   const handleDeleteFile = async (file, index) => {
-    if (window.confirm(`Are you sure you want to delete the file "${file.name}"?`)) {
+    if (window.confirm(`Delete file "${file.name}"?`)) {
       try {
         await deleteFile(file.path);
-        const updatedEventData = {
-          ...localEvent,
-          files: localEvent.files.filter((_, i) => i !== index),
-        };
-        setLocalEvent(updatedEventData);
-        if (onSave) {
-          await onSave(updatedEventData);
-        } else {
-          setIsDirty(true);
-        }
+        const updatedFiles = localEvent.files.filter((_, i) => i !== index);
+        setLocalEvent((prev) => ({ ...prev, files: updatedFiles }));
+        setIsDirty(true); // Mark as dirty so user can save
       } catch (err) {
         console.error('Failed to delete file', err);
-        alert('Failed to delete file: ' + file.name);
+        alert('Failed to delete file');
       }
     }
   };
@@ -247,13 +159,8 @@ function EventCard(props, ref) {
   };
 
   useImperativeHandle(ref, () => ({
-    handleClose: () => internalClose(),
-    triggerSave: () => {
-      if (isDirty) {
-        return internalSave();
-      }
-      return Promise.resolve();
-    },
+    handleClose: internalClose,
+    triggerSave: () => (isDirty ? internalSave() : Promise.resolve()),
     getCurrentEvent: () => localEvent,
     isDirty: () => isDirty,
   }));
@@ -262,278 +169,268 @@ function EventCard(props, ref) {
   const eventId = currentEvent.id || 'new-event';
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1.15fr_1fr] lg:gap-8 xl:grid-cols-[1.45fr_1.2fr_1fr] xl:gap-10">
-        <SectionCard
-          icon={Info}
-          accentColor="bg-blue-50 text-blue-600"
-          title="Event Overview"
-          className="lg:col-span-1"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            <LabeledInput
-              id={`clientName-${eventId}`}
-              label="Client Name"
-              type="text"
-              value={currentEvent.clientName || ''}
-              onChange={(e) => handleChange('clientName', e.target.value)}
-              placeholder="Client's full name"
-            />
-            <LabeledInput
-              id={`eventName-${eventId}`}
-              label="Event Name"
-              type="text"
-              value={currentEvent.eventName || ''}
-              onChange={(e) => handleChange('eventName', e.target.value)}
-              placeholder="Brief name for the event"
-            />
-            <LabeledInput
-              id={`eventDate-${eventId}`}
-              label="Event Date"
-              type="date"
-              icon={<CalendarIcon />}
-              value={currentEvent.eventDate || ''}
-              onChange={(e) => handleChange('eventDate', e.target.value)}
-            />
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor={`buildingArea-${eventId}`}
-                className="text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
-              >
-                Building Area
-              </label>
-              <select
-                id={`buildingArea-${eventId}`}
-                value={currentEvent.buildingArea || ''}
-                onChange={(e) => handleChange('buildingArea', e.target.value)}
-                className="w-full rounded-xl border border-slate-300/80 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-all duration-150 ease-in-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 hover:border-slate-300/90"
-              >
-                <option value="">Select venue</option>
-                <option value="Brewhouse">Brewhouse</option>
-                <option value="Taphouse">Taphouse</option>
-                <option value="Hall">Hall</option>
-              </select>
-            </div>
-            <LabeledInput
-              id={`startTime-${eventId}`}
-              label="Start Time"
-              type="time"
-              icon={<Clock />}
-              value={currentEvent.startTime || ''}
-              onChange={(e) => handleChange('startTime', e.target.value)}
-              disabled={currentEvent.allDay || false}
-            />
-            <LabeledInput
-              id={`endTime-${eventId}`}
-              label="End Time"
-              type="time"
-              icon={<Clock />}
-              value={currentEvent.endTime || ''}
-              onChange={(e) => handleChange('endTime', e.target.value)}
-              disabled={currentEvent.allDay || false}
-            />
-            <ToggleInput
-              id={`allDay-${eventId}`}
-              label="All-day event"
-              checked={currentEvent.allDay || false}
-              onChange={(e) => handleChange('allDay', e.target.checked)}
-              description="Blocks out start and end times for the full day."
-              className="sm:col-span-2"
-            />
-            <LabeledInput
-              id={`numberOfGuests-${eventId}`}
-              label="Number of Guests"
-              type="number"
-              icon={<Users />}
-              value={currentEvent.numberOfGuests || ''}
-              onChange={(e) => handleChange('numberOfGuests', e.target.value)}
-              placeholder="e.g., 50"
-              min="0"
-              containerClassName="sm:col-span-2 sm:mx-auto sm:max-w-[220px]"
-              labelClassName="sm:justify-center sm:text-center"
-            />
-          </div>
-        </SectionCard>
+    <div className="flex flex-col gap-8">
 
-        <SectionCard
-          icon={DollarSign}
-          accentColor="bg-emerald-50 text-emerald-600"
-          title="Payment Tracking"
-          className="lg:col-span-1"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            <LabeledInput
-              id={`priceGiven-${eventId}`}
-              label="Price Given ($)"
-              type="number"
-              value={currentEvent.priceGiven || ''}
-              onChange={(e) => handleChange('priceGiven', e.target.value)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              labelClassName="sm:flex sm:min-h-[2.5rem] sm:items-end"
+      {/* Header Section: Prominent Inputs (Compacted) */}
+      <div className="flex flex-col gap-2 border-b border-slate-200 pb-4">
+        <div>
+          <input
+            type="text"
+            value={currentEvent.eventName || ''}
+            onChange={(e) => handleChange('eventName', e.target.value)}
+            placeholder="Untitled Event"
+            className="w-full bg-transparent text-3xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none"
+          />
+        </div>
+        <div className="flex items-center gap-2 text-slate-500">
+            <Users size={16} />
+            <input
+                type="text"
+                value={currentEvent.clientName || ''}
+                onChange={(e) => handleChange('clientName', e.target.value)}
+                placeholder="Client Name"
+                className="bg-transparent text-lg font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none"
             />
-            <LabeledInput
-              id={`downPaymentRequired-${eventId}`}
-              label="Down Payment Required ($)"
-              type="number"
-              value={currentEvent.downPaymentRequired || ''}
-              onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              labelClassName="sm:flex sm:min-h-[2.5rem] sm:items-end"
-            />
-            <ToggleInput
-              id={`downPaymentReceived-${eventId}`}
-              label="Deposit received"
-              checked={currentEvent.downPaymentReceived || false}
-              onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
-              description="Keep track of when the initial payment arrives."
-              className="sm:col-span-2"
-            />
-            <LabeledInput
-              id={`downPaymentReceivedDate-${eventId}`}
-              label="Down Payment Received Date"
-              type="date"
-              icon={<CalendarIcon />}
-              value={currentEvent.downPaymentReceivedDate || ''}
-              onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
-              disabled={!currentEvent.downPaymentReceived}
-            />
-            <LabeledInput
-              id={`amountPaidAfter-${eventId}`}
-              label="Food/Beverage/Other Costs ($)"
-              type="number"
-              value={currentEvent.amountPaidAfter || ''}
-              onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-            <LabeledInput
-              id={`grandTotal-${eventId}`}
-              label="Grand Total ($)"
-              type="number"
-              value={currentEvent.grandTotal || ''}
-              onChange={(e) => handleChange('grandTotal', e.target.value)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-            <LabeledInput
-              id={`securityDeposit-${eventId}`}
-              label="Security Deposit ($)"
-              type="number"
-              value={currentEvent.securityDeposit || ''}
-              onChange={(e) => handleChange('securityDeposit', e.target.value)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-            <ToggleInput
-              id={`finalPaymentReceived-${eventId}`}
-              label="Final payment received"
-              checked={currentEvent.finalPaymentReceived || false}
-              onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
-              description="Confirm when the closing balance has been paid."
-              className="sm:col-span-2"
-            />
-            <LabeledInput
-              id={`finalPaymentReceivedDate-${eventId}`}
-              label="Final Payment Received Date"
-              type="date"
-              icon={<CalendarIcon />}
-              value={currentEvent.finalPaymentReceivedDate || ''}
-              onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
-              disabled={!currentEvent.finalPaymentReceived}
-              containerClassName="sm:col-span-2 sm:mx-auto sm:max-w-[220px]"
-              labelClassName="sm:justify-center sm:text-center"
-            />
-          </div>
-        </SectionCard>
+        </div>
+      </div>
 
-        <SectionCard
-          icon={FileText}
-          accentColor="bg-violet-50 text-violet-600"
-          title="Notes & Files"
-          className="lg:col-span-1"
-        >
-          <div className="flex h-full flex-col gap-6">
-            <div className="flex flex-1 flex-col gap-2">
-              <label
-                htmlFor={`notes-${eventId}`}
-                className="text-[0.8rem] font-semibold uppercase tracking-wide text-slate-500"
-              >
-                Notes
-              </label>
-              <textarea
-                ref={notesTextareaRef}
-                id={`notes-${eventId}`}
-                placeholder="Add additional details, client requests, or internal notes..."
-                value={currentEvent.notes || ''}
-                onChange={(e) => handleChange('notes', e.target.value)}
-                className="min-h-[170px] w-full flex-1 resize-none rounded-xl border border-slate-300/80 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200/70 placeholder:text-slate-400"
-                rows="3"
-              ></textarea>
-            </div>
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-slate-600">Attachments</p>
-              <label
-                htmlFor={`fileUpload-${eventId}`}
-                className="relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300/80 bg-slate-50 px-4 py-5 text-center text-sm font-semibold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50/60 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-200/70"
-              >
-                <span className="flex items-center gap-2 text-blue-600">
-                  <Paperclip size={16} className="text-blue-500" />
-                  Add files
-                </span>
-                <span className="text-xs font-normal text-slate-500">
-                  Drop documents here or click to browse.
-                </span>
-                <input
-                  id={`fileUpload-${eventId}`}
-                  type="file"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  multiple
-                />
-              </label>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
 
-              {currentEvent.files && currentEvent.files.length > 0 && (
-                <ul className="max-h-64 divide-y divide-slate-200 overflow-y-auto rounded-xl border border-slate-200 bg-white">
-                  {currentEvent.files.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-600 transition hover:bg-blue-50/60"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                          <Paperclip size={16} />
-                        </span>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="truncate font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                          title={file.name}
+        {/* Left Column: Logistics & Notes (8 cols) */}
+        <div className="flex flex-col gap-8 lg:col-span-8">
+
+            {/* Logistics Group */}
+            <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <SectionHeader title="Logistics" icon={Info} />
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <LabeledInput
+                        id={`eventDate-${eventId}`}
+                        label="Event Date"
+                        type="date"
+                        icon={<CalendarIcon />}
+                        value={currentEvent.eventDate || ''}
+                        onChange={(e) => handleChange('eventDate', e.target.value)}
+                    />
+
+                     <div className="flex flex-col gap-1.5">
+                        <label htmlFor={`buildingArea-${eventId}`} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                             <MapPin size={14} className="text-slate-400" />
+                             <span>Venue</span>
+                        </label>
+                        <select
+                            id={`buildingArea-${eventId}`}
+                            value={currentEvent.buildingArea || ''}
+                            onChange={(e) => handleChange('buildingArea', e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm font-medium text-slate-800 transition-all hover:border-slate-300 hover:bg-white focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                         >
-                          {file.name}
-                        </a>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteFile(file, index)}
-                        className="rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-rose-500 transition hover:border-rose-100 hover:bg-rose-50"
-                        title="Delete this file"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                            <option value="">Select Venue</option>
+                            <option value="Brewhouse">Brewhouse</option>
+                            <option value="Taphouse">Taphouse</option>
+                            <option value="Hall">Hall</option>
+                        </select>
+                    </div>
+
+                    {/* Compact Time Range Input */}
+                    <div className="flex flex-col gap-1.5 sm:col-span-2">
+                        <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                             <Clock size={14} className="text-slate-400" />
+                             <span>Time</span>
+                        </label>
+                        <div className={`flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-2 transition-all hover:border-slate-300 hover:bg-white focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10 ${currentEvent.allDay ? 'opacity-70' : ''}`}>
+                             <div className="flex flex-1 items-center gap-2">
+                                 <input
+                                    type="time"
+                                    value={currentEvent.startTime || ''}
+                                    onChange={(e) => handleChange('startTime', e.target.value)}
+                                    disabled={currentEvent.allDay}
+                                    className="w-full bg-transparent text-sm font-medium text-slate-800 focus:outline-none disabled:cursor-not-allowed"
+                                 />
+                                 <span className="text-slate-400">→</span>
+                                 <input
+                                    type="time"
+                                    value={currentEvent.endTime || ''}
+                                    onChange={(e) => handleChange('endTime', e.target.value)}
+                                    disabled={currentEvent.allDay}
+                                    className="w-full bg-transparent text-sm font-medium text-slate-800 focus:outline-none disabled:cursor-not-allowed"
+                                 />
+                             </div>
+                             <div className="h-6 w-px bg-slate-200"></div>
+                             <label className="flex cursor-pointer items-center gap-2 px-2">
+                                 <input
+                                    type="checkbox"
+                                    checked={currentEvent.allDay || false}
+                                    onChange={(e) => handleChange('allDay', e.target.checked)}
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                 />
+                                 <span className="whitespace-nowrap text-sm font-medium text-slate-600">All Day</span>
+                             </label>
+                        </div>
+                    </div>
+
+                    <LabeledInput
+                        id={`numberOfGuests-${eventId}`}
+                        label="Guest Count"
+                        type="number"
+                        icon={<Users />}
+                        placeholder="0"
+                        value={currentEvent.numberOfGuests || ''}
+                        onChange={(e) => handleChange('numberOfGuests', e.target.value)}
+                    />
+                </div>
             </div>
-          </div>
-        </SectionCard>
+
+            {/* Notes & Files Group */}
+             <div className="flex flex-1 flex-col space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <SectionHeader title="Notes & Attachments" icon={FileText} />
+
+                <textarea
+                    ref={notesTextareaRef}
+                    placeholder="Type details here..."
+                    value={currentEvent.notes || ''}
+                    onChange={(e) => handleChange('notes', e.target.value)}
+                    className="min-h-[150px] w-full resize-none rounded-lg border-0 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                />
+
+                <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-slate-700">Files</h4>
+                         <label className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                             Upload
+                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
+                         </label>
+                     </div>
+
+                     {currentEvent.files && currentEvent.files.length > 0 ? (
+                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                             {currentEvent.files.map((file, i) => (
+                                 <div key={i} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 p-2 pr-3">
+                                     <a href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 overflow-hidden text-sm font-medium text-slate-700 hover:text-blue-600">
+                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white text-blue-500 shadow-sm">
+                                             <Paperclip size={14} />
+                                         </div>
+                                         <span className="truncate">{file.name}</span>
+                                     </a>
+                                     <button onClick={() => handleDeleteFile(file, i)} className="ml-2 text-slate-400 hover:text-rose-500">
+                                         &times;
+                                     </button>
+                                 </div>
+                             ))}
+                         </div>
+                     ) : (
+                         <p className="text-center text-sm italic text-slate-400">No files attached.</p>
+                     )}
+                </div>
+             </div>
+
+        </div>
+
+        {/* Right Column: Financials (4 cols) */}
+        <div className="lg:col-span-4">
+             <div className="sticky top-6 flex flex-col gap-6 rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm">
+                <SectionHeader title="Financials" icon={DollarSign} className="border-slate-200" />
+
+                <div className="space-y-4">
+                    <LabeledInput
+                        label="Price Quoted"
+                        type="number"
+                        placeholder="0.00"
+                        value={currentEvent.priceGiven || ''}
+                        onChange={(e) => handleChange('priceGiven', e.target.value)}
+                        inputClassName="bg-white"
+                    />
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                         <div className="mb-2 flex items-center justify-between">
+                             <span className="text-xs font-semibold uppercase text-slate-500">Deposit</span>
+                             <label className="flex items-center gap-2">
+                                 <input
+                                    type="checkbox"
+                                    checked={currentEvent.downPaymentReceived || false}
+                                    onChange={(e) => handleChange('downPaymentReceived', e.target.checked)}
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                 />
+                                 <span className="text-xs font-medium text-slate-600">Received</span>
+                             </label>
+                         </div>
+                         <div className="flex gap-2">
+                             <input
+                                type="number"
+                                placeholder="Amount"
+                                value={currentEvent.downPaymentRequired || ''}
+                                onChange={(e) => handleChange('downPaymentRequired', e.target.value)}
+                                className="w-full rounded-md border-slate-200 bg-slate-50 px-2 py-1.5 text-sm"
+                             />
+                              <input
+                                type="date"
+                                disabled={!currentEvent.downPaymentReceived}
+                                value={currentEvent.downPaymentReceivedDate || ''}
+                                onChange={(e) => handleChange('downPaymentReceivedDate', e.target.value)}
+                                className="w-[110px] rounded-md border-slate-200 bg-slate-50 px-2 py-1.5 text-sm disabled:opacity-50"
+                             />
+                         </div>
+                    </div>
+
+                    <LabeledInput
+                        label="Addtl. Costs"
+                        type="number"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        value={currentEvent.amountPaidAfter || ''}
+                        onChange={(e) => handleChange('amountPaidAfter', e.target.value)}
+                        inputClassName="bg-white"
+                    />
+
+                    <LabeledInput
+                        label="Security Deposit"
+                        type="number"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        value={currentEvent.securityDeposit || ''}
+                        onChange={(e) => handleChange('securityDeposit', e.target.value)}
+                        inputClassName="bg-white"
+                    />
+
+                    <div className="pt-2">
+                        <LabeledInput
+                            label="Grand Total"
+                            type="number"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            value={currentEvent.grandTotal || ''}
+                            onChange={(e) => handleChange('grandTotal', e.target.value)}
+                            inputClassName="text-lg font-bold text-slate-900 border-blue-200 bg-blue-50/30 focus:bg-white"
+                        />
+                    </div>
+
+                     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                         <div className="mb-2 flex items-center justify-between">
+                             <span className="text-xs font-semibold uppercase text-slate-500">Final Payment</span>
+                             <label className="flex items-center gap-2">
+                                 <input
+                                    type="checkbox"
+                                    checked={currentEvent.finalPaymentReceived || false}
+                                    onChange={(e) => handleChange('finalPaymentReceived', e.target.checked)}
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                 />
+                                 <span className="text-xs font-medium text-slate-600">Received</span>
+                             </label>
+                         </div>
+                         <input
+                                type="date"
+                                disabled={!currentEvent.finalPaymentReceived}
+                                value={currentEvent.finalPaymentReceivedDate || ''}
+                                onChange={(e) => handleChange('finalPaymentReceivedDate', e.target.value)}
+                                className="w-full rounded-md border-slate-200 bg-slate-50 px-2 py-1.5 text-sm disabled:opacity-50"
+                         />
+                    </div>
+                </div>
+             </div>
+        </div>
+
       </div>
     </div>
   );

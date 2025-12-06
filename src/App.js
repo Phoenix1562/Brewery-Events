@@ -15,6 +15,7 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase
 import { exportEventsToExcel } from './utils/export';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Save, ArrowRight, ArrowLeft, Trash2, X } from 'lucide-react';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('maybe');
@@ -270,6 +271,83 @@ function App() {
   if (loading) return <div className="text-center py-10">Loading application data...</div>;
   if (!user) return <AuthForm />;
 
+  // --- Button Definitions ---
+  const ActionButton = ({ onClick, icon: Icon, label, colorClass = "bg-white text-slate-700 hover:bg-slate-50 border-slate-200" }) => (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold shadow-sm transition-all hover:scale-[1.02] hover:shadow-md focus:ring-2 focus:ring-offset-1 disabled:opacity-50 xl:w-full xl:justify-start ${colorClass}`}
+      title={label}
+    >
+      {Icon && <Icon size={18} />}
+      <span className="whitespace-nowrap">{label}</span>
+    </button>
+  );
+
+  const renderActions = () => {
+    if (!activeEvent) return null;
+
+    return (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center xl:flex-col xl:items-stretch">
+            <ActionButton
+                onClick={async () => {
+                    if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
+                        try {
+                            await eventCardRef.current.handleClose();
+                        } catch (err) {
+                            console.error('Error saving before closing:', err);
+                            setActiveEvent(null);
+                        }
+                    } else {
+                        await saveEvent(activeEvent);
+                        setActiveEvent(null);
+                    }
+                }}
+                icon={Save}
+                label="Save & Close"
+                colorClass="bg-green-600 text-white border-transparent hover:bg-green-700 focus:ring-green-500"
+            />
+
+            <div className="flex gap-3 sm:contents xl:flex xl:flex-col xl:gap-3">
+                 {activeEvent.status !== 'maybe' && (
+                    <ActionButton
+                        onClick={() => handleMoveLeftEvent(activeEvent.id)}
+                        icon={ArrowLeft}
+                        label={
+                            activeEvent.status === 'upcoming' ? 'To Pending' :
+                            activeEvent.status === 'finished' ? 'To Upcoming' : 'Move Left'
+                        }
+                        colorClass="bg-white text-blue-700 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                    />
+                )}
+
+                {activeEvent.status !== 'finished' && (
+                    <ActionButton
+                        onClick={() => handleMoveRightEvent(activeEvent.id)}
+                        icon={ArrowRight}
+                        label={
+                            activeEvent.status === 'maybe' ? 'To Upcoming' :
+                            activeEvent.status === 'upcoming' ? 'To Finished' : 'Move Right'
+                        }
+                        colorClass="bg-blue-600 text-white border-transparent hover:bg-blue-700 focus:ring-blue-500"
+                    />
+                )}
+            </div>
+
+            <div className="mt-2 h-px bg-slate-200 xl:my-2"></div>
+
+             <div className="flex gap-3 sm:contents xl:flex xl:flex-col xl:gap-3">
+                 <ActionButton
+                    onClick={() => deleteEvent(activeEvent.id)}
+                    icon={Trash2}
+                    label="Delete"
+                    colorClass="bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300"
+                 />
+             </div>
+        </div>
+    );
+  };
+
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
@@ -289,6 +367,7 @@ function App() {
             isOpen={!!activeEvent}
             onClose={handleSidePanelClose} // Use the refined handler
             title={activeEvent.eventName || 'Event Details'}
+            actions={renderActions()} // Pass actions prop
           >
             <EventCard
               ref={eventCardRef} // Pass ref to EventCard
@@ -301,81 +380,6 @@ function App() {
               active={true} // This EventCard is active when SidePanel is open
               hideActions={true} // Using external action panel in App.js
             />
-            {/* External action panel as previously designed in App.js */}
-            <AnimatePresence>
-              {activeEvent && ( // Re-check activeEvent for the motion component
-                <motion.div
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 100, opacity: 0, transition: { duration: 0.2 } }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-                  className="mt-6 rounded-2xl border border-gray-200 bg-white/85 p-4 shadow-sm"
-                  style={{ width: '100%' }}
-                >
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      <button
-                        onClick={async () => {
-                          if (eventCardRef.current && typeof eventCardRef.current.handleClose === 'function') {
-                            try {
-                              await eventCardRef.current.handleClose();
-                            } catch (err) {
-                              console.error('Error saving before closing:', err);
-                              setActiveEvent(null);
-                            }
-                          } else {
-                            await saveEvent(activeEvent);
-                            setActiveEvent(null);
-                          }
-                        }}
-                        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-600"
-                      >
-                        Save & Close
-                      </button>
-                      {activeEvent.status !== 'finished' && (
-                        <button
-                          onClick={() => handleMoveRightEvent(activeEvent.id)}
-                          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
-                        >
-                          {activeEvent.status === 'maybe'
-                            ? 'Move to Upcoming Events →'
-                            : activeEvent.status === 'upcoming'
-                              ? 'Move to Finished Events →'
-                              : 'Move Right →'}
-                        </button>
-                      )}
-                      {activeEvent.status !== 'maybe' && (
-                        <button
-                          onClick={() => handleMoveLeftEvent(activeEvent.id)}
-                          className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
-                        >
-                          {activeEvent.status === 'upcoming'
-                            ? '← Move to Pending Events'
-                            : activeEvent.status === 'finished'
-                              ? '← Move to Upcoming Events'
-                              : '← Move Left'}
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => deleteEvent(activeEvent.id)}
-                        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        onClick={handleSidePanelClose}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
-                      >
-                        Cancel / Close
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </SidePanel>
         </div>
       )}
